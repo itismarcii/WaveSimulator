@@ -9,13 +9,16 @@ namespace ShaderWave
         [Serializable]
         internal struct ShaderTemplate
         {
+
             public ComputeShader Shader;
             public MeshFilter ShaderMesh;
             public int Resolution;
             public float Scaling;
             public Vector3 Shift;
             public int Speed;
-            [Space, Tooltip("Maximum of 1000 Waves")] public Wave[] _Waves;
+            [Space] public Wave Wave;
+            public uint WaveAmount;
+            public WaveGenerator.Multiplier _Multiplier;
         }
         
         private struct ShaderContainer
@@ -66,7 +69,9 @@ namespace ShaderWave
                 };
                 
                 ShaderWaveHandler.SetupShader(ref container.Shader);
-                ShaderWaveHandler.SetupWaves(shaderTemplate._Waves, ref container.Shader);
+                ShaderWaveHandler.SetupWaves(
+                    new WaveGenerator(shaderTemplate.WaveAmount, shaderTemplate.Wave, shaderTemplate._Multiplier), 
+                    ref container.Shader);
                 ShaderWaveHandler.SetupMesh(ref container.ShaderMesh, container.Shader);
                 _ShaderContainers.Add(container);
             }

@@ -5,13 +5,13 @@ namespace ShaderWave
     public struct ShaderWave
     {
         internal readonly ComputeShader Shader;
-        internal ComputeBuffer VertexBuffer;
+        internal readonly ComputeBuffer VertexBuffer;
         internal Vector3 Shift;
-        internal float Scaling;
+        internal readonly float Scaling;
         internal readonly int ResolutionId, TimeId, VertexBufferId, ShiftId, ScalingId;
         internal readonly int Resolution;
         internal int[] KernelInformation;
-        internal float Speed;
+        internal readonly float Speed;
 
         public ShaderWave(ComputeShader shader, Vector3 shift, float scaling, int resolution, float speed = 1) : this()
         {

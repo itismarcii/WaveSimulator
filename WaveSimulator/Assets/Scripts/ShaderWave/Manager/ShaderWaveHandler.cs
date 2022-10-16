@@ -46,13 +46,13 @@ namespace ShaderWave
             triangleBuffer.Release();
         }
         
-        public static void SetupWaves(Wave[] waves, ref ShaderWave shader)
+        public static void SetupWaves(WaveGenerator waves, ref ShaderWave shader)
         {
-            var vectorArray = new Vector4[waves.Length];
+            var vectorArray = new Vector4[waves.Waves.Length];
 
-            for (var i = 0; i < waves.Length; i++)
+            for (var i = 0; i < vectorArray.Length; i++)
             {
-                var wave = waves[i];
+                var wave = waves.Waves[i];
                 vectorArray[i] = new Vector4(wave.X, wave.Z, wave.Amplitude, wave.Wavelength);
             }
             

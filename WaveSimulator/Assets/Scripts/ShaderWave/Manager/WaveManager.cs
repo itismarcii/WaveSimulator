@@ -15,7 +15,7 @@ namespace ShaderWave
             public float Scaling;
             public Vector3 Shift;
             public int Speed;
-            [Space, Tooltip("Maximum of 6 waves !!!")] public Wave[] _Waves;
+            [Space, Tooltip("Maximum of 1000 Waves")] public Wave[] _Waves;
         }
         
         private struct ShaderContainer

@@ -7,7 +7,7 @@ namespace ShaderWave
     public struct Wave
     {
         public float X, Z;
-        [Range(0f, 5.0000f)]public float Amplitude;
-        [Range(.001f, 100)]public float Wavelength;
+        [Range(0f, .400f)]public float Amplitude;
+        [Range(.001f, 25f)]public float Wavelength;
     }
 }

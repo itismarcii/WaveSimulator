@@ -48,11 +48,16 @@ namespace ShaderWave
         
         public static void SetupWaves(Wave[] waves, ref ShaderWave shader)
         {
-            for (var i = 0; i < 6; i++)
+            var vectorArray = new Vector4[waves.Length];
+
+            for (var i = 0; i < waves.Length; i++)
             {
-                var wave = waves.Length > i ? waves[i] : new Wave();
-                shader.Shader.SetVector(Shader.PropertyToID($"wave{i}"), new Vector4(wave.X, wave.Z, wave.Amplitude, wave.Wavelength));
+                var wave = waves[i];
+                vectorArray[i] = new Vector4(wave.X, wave.Z, wave.Amplitude, wave.Wavelength);
             }
+            
+            shader.Shader.SetVectorArray(Shader.PropertyToID("waves"), vectorArray);
+            shader.Shader.SetInt(Shader.PropertyToID("waves_length"), vectorArray.Length);
         }        
         
         public static void UpdateWave(ref Mesh mesh, in ShaderWave shader)

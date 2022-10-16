@@ -12,6 +12,8 @@ uint resolution;
 float4 wave0, wave1, wave2, wave3, wave4, wave5;
 float3 shift;
 float time, scaling;
+float4 waves[1000];
+int waves_length;
 
 float3 gerstner_wave (float4 wave, float3 position)
 {
@@ -37,13 +39,11 @@ void wave_generator (uint3 id : SV_DispatchThreadID)
     if(id.x < resolution && id.z < resolution)
     {
         float3 pos = id.xyz;
-        
-        pos += gerstner_wave(wave0, pos);
-        pos += gerstner_wave(wave1, pos);
-        pos += gerstner_wave(wave2, pos);
-        pos += gerstner_wave(wave3, pos);
-        pos += gerstner_wave(wave4, pos);
-        pos += gerstner_wave(wave5, pos);
+
+        for (int i = 0; i < waves_length; ++i)
+        {
+            pos += gerstner_wave(waves[i], pos);
+        }
         
         pos.x += shift.x;
         pos.z += shift.z;

@@ -9,12 +9,14 @@ RWStructuredBuffer<float2> uvs;
 RWStructuredBuffer<int> triangles;
 
 uint resolution;
-float time, scaling;
-float4 wave0;
+float4 wave0, wave1, wave2, wave3, wave4, wave5;
 float3 shift;
+float time, scaling;
 
 float3 gerstner_wave (float4 wave, float3 position)
 {
+    if(wave.z == 0 || wave.w == 0) return float3 (0,0,0);
+    
     const float steepness = wave.z;
     const float wavelength = wave.w;
     const float k = 2 * PI / wavelength;
@@ -31,13 +33,17 @@ float3 gerstner_wave (float4 wave, float3 position)
 
 [numthreads(32,1,32)]
 void wave_generator (uint3 id : SV_DispatchThreadID)
-{
-    
+{    
     if(id.x < resolution && id.z < resolution)
     {
         float3 pos = id.xyz;
         
         pos += gerstner_wave(wave0, pos);
+        pos += gerstner_wave(wave1, pos);
+        pos += gerstner_wave(wave2, pos);
+        pos += gerstner_wave(wave3, pos);
+        pos += gerstner_wave(wave4, pos);
+        pos += gerstner_wave(wave5, pos);
         
         pos.x += shift.x;
         pos.z += shift.z;
@@ -46,11 +52,9 @@ void wave_generator (uint3 id : SV_DispatchThreadID)
         pos.z *= scaling;
 
         normalize(pos);
-        
         vertices[id.x + id.z * resolution] = pos;
     }
 }
-
 
 [numthreads(32,1,32)]
 void uv_generator (uint3 id : SV_DispatchThreadID)

@@ -15,7 +15,7 @@ namespace ShaderWave
             public float Scaling;
             public Vector3 Shift;
             public int Speed;
-            [Space] public Wave _Wave;
+            [Space, Tooltip("Maximum of 6 waves !!!")] public Wave[] _Waves;
         }
         
         private struct ShaderContainer
@@ -66,7 +66,7 @@ namespace ShaderWave
                 };
                 
                 ShaderWaveHandler.SetupShader(ref container.Shader);
-                ShaderWaveHandler.SetupWave(shaderTemplate._Wave, UnityEngine.Shader.PropertyToID("wave0"), ref container.Shader);
+                ShaderWaveHandler.SetupWaves(shaderTemplate._Waves, ref container.Shader);
                 ShaderWaveHandler.SetupMesh(ref container.ShaderMesh, container.Shader);
                 _ShaderContainers.Add(container);
             }

@@ -26,7 +26,7 @@ namespace ShaderWave
             //UVs setup
             var count = shader.Resolution * shader.Resolution;
             var uvBuffer =  new ComputeBuffer(count, sizeof(float) * 2);
-            shader.Shader.SetBuffer(1, UnityEngine.Shader.PropertyToID("uvs"), uvBuffer);
+            shader.Shader.SetBuffer(1, Shader.PropertyToID("uvs"), uvBuffer);
             shader.Shader.Dispatch(1, kernelInfo[1], kernelInfo[2], kernelInfo[3]);
             
             var uvs = new Vector2[mesh.uv.Length];
@@ -37,7 +37,7 @@ namespace ShaderWave
             //Triangles setup
             count = (shader.Resolution - 1) * (shader.Resolution - 1);
             var triangleBuffer = new ComputeBuffer(count * 6, sizeof(int));
-            shader.Shader.SetBuffer(2, UnityEngine.Shader.PropertyToID("triangles"), triangleBuffer);
+            shader.Shader.SetBuffer(2, Shader.PropertyToID("triangles"), triangleBuffer);
             shader.Shader.Dispatch(2, kernelInfo[1], kernelInfo[2], kernelInfo[3]);
             
             var triangles = new int[mesh.triangles.Length];
@@ -46,9 +46,13 @@ namespace ShaderWave
             triangleBuffer.Release();
         }
         
-        public static void SetupWave(Wave wave, int waveId, ref ShaderWave shader)
+        public static void SetupWaves(Wave[] waves, ref ShaderWave shader)
         {
-            shader.Shader.SetVector(waveId, new Vector4(wave.X, wave.Z, wave.Amplitude, wave.Wavelength));
+            for (var i = 0; i < 6; i++)
+            {
+                var wave = waves.Length > i ? waves[i] : new Wave();
+                shader.Shader.SetVector(Shader.PropertyToID($"wave{i}"), new Vector4(wave.X, wave.Z, wave.Amplitude, wave.Wavelength));
+            }
         }        
         
         public static void UpdateWave(ref Mesh mesh, in ShaderWave shader)

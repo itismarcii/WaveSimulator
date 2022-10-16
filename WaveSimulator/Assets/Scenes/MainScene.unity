@@ -172,13 +172,13 @@ MonoBehaviour:
     ShaderMesh: {fileID: 1780225722}
     Resolution: 11
     Scaling: 1
-    Shift: {x: 0, y: 0, z: 0}
+    Shift: {x: -5, y: 0, z: -5}
     Speed: 1
     _Wave:
       X: 0.5
       Z: 0.5
-      Amplitude: 1
-      Wavelength: 1
+      Amplitude: 0.32
+      Wavelength: 15.1
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0

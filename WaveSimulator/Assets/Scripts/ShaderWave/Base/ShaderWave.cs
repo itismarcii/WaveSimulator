@@ -1,9 +1,7 @@
-using System;
 using UnityEngine;
 
 namespace ShaderWave
 {
-    [Serializable]
     public struct ShaderWave
     {
         internal readonly ComputeShader Shader;
@@ -12,7 +10,7 @@ namespace ShaderWave
         internal float Scaling;
         internal readonly int ResolutionId, TimeId, VertexBufferId, ShiftId, ScalingId;
         internal readonly int Resolution;
-        [SerializeField] internal int[] KernelInformation;
+        internal int[] KernelInformation;
         internal float Speed;
 
         public ShaderWave(ComputeShader shader, Vector3 shift, float scaling, int resolution, float speed = 1) : this()

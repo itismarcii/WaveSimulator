@@ -1,0 +1,76 @@
+#pragma kernel wave_generator
+#pragma kernel uv_generator;
+#pragma kernel triangle_generator
+
+#define PI 3.14159265358979323846
+
+RWStructuredBuffer<float3> vertices;
+RWStructuredBuffer<float2> uvs;
+RWStructuredBuffer<int> triangles;
+
+uint resolution;
+float time, scaling;
+float4 wave0;
+float3 shift;
+
+float3 gerstner_wave (float4 wave, float3 position)
+{
+    const float steepness = wave.z;
+    const float wavelength = wave.w;
+    const float k = 2 * PI / wavelength;
+    const float c = sqrt(9.8 / k);
+    const float2 d = normalize(wave.xy);
+    const float f = k * (dot(d, position.xz) - c * time);
+    const float a = steepness / k;
+
+    return float3(
+        a * cos(f),
+        a * sin(f),
+        a * cos(f));
+}
+
+[numthreads(32,1,32)]
+void wave_generator (uint3 id : SV_DispatchThreadID)
+{
+    
+    if(id.x < resolution && id.z < resolution)
+    {
+        float3 pos = id.xyz;
+        
+        pos += gerstner_wave(wave0, pos);
+        
+        pos.x += shift.x;
+        pos.z += shift.z;
+        
+        pos.x *= scaling;
+        pos.z *= scaling;
+
+        normalize(pos);
+        
+        vertices[id.x + id.z * resolution] = pos;
+    }
+}
+
+
+[numthreads(32,1,32)]
+void uv_generator (uint3 id : SV_DispatchThreadID)
+{
+    uvs[id.x + id.z * resolution] = float2 (id.x / resolution, id.z / resolution);
+}
+
+[numthreads(32,1,32)]
+void triangle_generator (uint3 id : SV_DispatchThreadID)
+{
+    if(id.x < resolution - 1 && id.z < resolution - 1)
+    {
+        int index = (id.x + (resolution - 1) * id.z) * 6;
+
+        triangles[index++] = (id.x) + resolution * (id.z);
+        triangles[index++] = (id.x) + resolution * (id.z + 1);
+        triangles[index++] = (id.x + 1) + resolution * (id.z + 1);
+
+        triangles[index++] = (id.x + 1) + resolution * (id.z + 1);
+        triangles[index++] = (id.x + 1) + resolution * (id.z);
+        triangles[index++] = (id.x) + resolution * (id.z);
+    }
+}

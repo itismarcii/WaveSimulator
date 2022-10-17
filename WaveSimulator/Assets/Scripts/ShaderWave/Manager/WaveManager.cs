@@ -9,7 +9,6 @@ namespace ShaderWave
         [Serializable]
         internal struct ShaderTemplate
         {
-
             public ComputeShader Shader;
             public MeshFilter ShaderMesh;
             public int Resolution;
@@ -37,11 +36,11 @@ namespace ShaderWave
 
         private void FixedUpdate()
         {
-            foreach (var shaderContainer in _ShaderContainers)
+            foreach (var container in _ShaderContainers)
             {
-                var container = shaderContainer;
-                ShaderWaveHandler.UpdateWave(ref container.ShaderMesh, container.Shader);
-                container.ShaderMesh = container.ShaderMesh;
+                var shaderContainer = container;
+                ShaderWaveHandler.UpdateWave(ref shaderContainer.ShaderMesh, shaderContainer.Shader);
+                shaderContainer.ShaderMesh = shaderContainer.ShaderMesh;
             }
         }
 

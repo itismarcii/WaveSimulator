@@ -15,7 +15,6 @@ namespace ShaderWave
             shader.Shader.SetInt(shader.ResolutionId, shader.Resolution);
             shader.Shader.SetFloat(shader.ScalingId, shader.Scaling);
             shader.Shader.SetVector(shader.ShiftId, shader.Shift);
-            shader.Shader.SetBuffer(kernelIndex, shader.VertexBufferId, shader.VertexBuffer);
             shader.SetKernelInfo(kernelIndex, threadGroups[0], threadGroups[1], threadGroups[2]);
         }
 
@@ -64,6 +63,7 @@ namespace ShaderWave
         {
             var kernelInfo = shader.KernelInformation;
             shader.Shader.SetFloat(shader.TimeId, Time.fixedTime * shader.Speed);
+            shader.Shader.SetBuffer(0, shader.VertexBufferId, shader.VertexBuffer);
             shader.Shader.Dispatch(
                 kernelInfo[0], kernelInfo[1], kernelInfo[2], kernelInfo[3]);
             var vertices = new Vector3[mesh.vertexCount];

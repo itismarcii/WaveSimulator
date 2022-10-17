@@ -68,7 +68,8 @@ namespace ShaderWave
             shader.Shader.SetVector(shader.StartIndexId, startIndex);
             shader.Shader.SetBuffer(0, shader.VertexBufferId, shader.VertexBuffer);
             shader.Shader.Dispatch(
-                kernelInfo[0], kernelInfo[1], kernelInfo[2], kernelInfo[3]);
+                kernelInfo[0], kernelInfo[1], kernelInfo[2], kernelInfo[3]
+                );
             var vertices = new Vector3[mesh.vertexCount];
             shader.VertexBuffer.GetData(vertices);
             mesh.vertices = vertices;

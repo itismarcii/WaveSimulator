@@ -87,12 +87,14 @@ namespace ShaderWave
                     new WaveGenerator(shaderTemplate.WaveAmount, shaderTemplate.Wave, shaderTemplate._Multiplier), 
                     ref container.Shader);
                 
-                for (int i = 0; i < container.MeshGrid.MeshGroup.Length; i++)
+                foreach (var meshGroup in container.MeshGrid.MeshGroup)
                 {
-                    var mesh = container.MeshGrid.MeshGroup[i].mesh;
-                    ShaderWaveHandler.SetupMesh(
-                        ref mesh, container.Shader, 
-                        Vector3.one * (container.MeshGrid.GridResolution * container.MeshGrid.MeshResolution));
+                    var mesh = meshGroup.mesh;
+                    ShaderWaveHandler.SetupMesh(ref mesh, container.Shader, new Vector3(
+                            mesh.bounds.max.x * container.MeshGrid.GridResolution * container.MeshGrid.MeshResolution,
+                            mesh.bounds.max.y,
+                            mesh.bounds.max.z * container.MeshGrid.GridResolution * container.MeshGrid.MeshResolution)
+                        );
                 }
                 
                 _ShaderContainers.Add(container);

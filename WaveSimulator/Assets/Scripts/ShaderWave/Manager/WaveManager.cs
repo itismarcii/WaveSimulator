@@ -10,7 +10,7 @@ namespace ShaderWave
         internal struct ShaderTemplate
         {
             public ComputeShader Shader;
-            public MeshFilter ShaderMesh;
+            public WaveGrid MeshGrid;
             public int Resolution;
             public float Scaling;
             public Vector3 Shift;
@@ -22,7 +22,7 @@ namespace ShaderWave
         
         private struct ShaderContainer
         {
-            internal Mesh ShaderMesh;
+            internal WaveGrid MeshGrid;
             internal ShaderWave Shader;
         }
 
@@ -38,9 +38,21 @@ namespace ShaderWave
         {
             foreach (var container in _ShaderContainers)
             {
-                var shaderContainer = container;
-                ShaderWaveHandler.UpdateWave(ref shaderContainer.ShaderMesh, shaderContainer.Shader);
-                shaderContainer.ShaderMesh = shaderContainer.ShaderMesh;
+                var meshGrid = container.MeshGrid;
+                var gridResolution = meshGrid.GridResolution;
+                var meshResolution = meshGrid.MeshResolution;
+                
+                for (var j = 0; j < gridResolution; j++)
+                {
+                    for (var i = 0; i < gridResolution; i++)
+                    {
+                        var mesh = meshGrid.MeshGroup[j + i * gridResolution].mesh;
+                        ShaderWaveHandler.UpdateWave(
+                            ref mesh, 
+                            container.Shader,
+                            new Vector2((meshResolution - 1) * i, (meshResolution - 1) * j));
+                    }
+                }
             }
         }
 
@@ -58,7 +70,10 @@ namespace ShaderWave
             {
                 var container = new ShaderContainer()
                 {
-                    ShaderMesh = shaderTemplate.ShaderMesh.mesh,
+                    MeshGrid = new WaveGrid(
+                        shaderTemplate.MeshGrid.MeshGroup, 
+                        2, // CURRENTLY HARDCODED !!! NEEDS TO BE UPDATED MIT MESH-TABLE FROM DEPTH-CALCULATOR !!!
+                        shaderTemplate.Resolution),
                     Shader = new ShaderWave(
                         shaderTemplate.Shader, 
                         shaderTemplate.Shift, 
@@ -71,7 +86,15 @@ namespace ShaderWave
                 ShaderWaveHandler.SetupWaves(
                     new WaveGenerator(shaderTemplate.WaveAmount, shaderTemplate.Wave, shaderTemplate._Multiplier), 
                     ref container.Shader);
-                ShaderWaveHandler.SetupMesh(ref container.ShaderMesh, container.Shader);
+                
+                for (int i = 0; i < container.MeshGrid.MeshGroup.Length; i++)
+                {
+                    var mesh = container.MeshGrid.MeshGroup[i].mesh;
+                    ShaderWaveHandler.SetupMesh(
+                        ref mesh, container.Shader, 
+                        Vector3.one * (container.MeshGrid.GridResolution * container.MeshGrid.MeshResolution));
+                }
+                
                 _ShaderContainers.Add(container);
             }
         }

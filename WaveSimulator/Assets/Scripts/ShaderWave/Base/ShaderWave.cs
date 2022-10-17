@@ -8,7 +8,7 @@ namespace ShaderWave
         internal readonly ComputeBuffer VertexBuffer;
         internal Vector3 Shift;
         internal readonly float Scaling;
-        internal readonly int ResolutionId, TimeId, VertexBufferId, ShiftId, ScalingId;
+        internal readonly int ResolutionId, TimeId, VertexBufferId, ShiftId, ScalingId, StartIndexId;
         internal readonly int Resolution;
         internal int[] KernelInformation;
         internal readonly float Speed;
@@ -26,6 +26,7 @@ namespace ShaderWave
             TimeId = UnityEngine.Shader.PropertyToID("time");
             ShiftId = UnityEngine.Shader.PropertyToID("shift");
             ScalingId = UnityEngine.Shader.PropertyToID("scaling");
+            StartIndexId = UnityEngine.Shader.PropertyToID("startIndex");
 
             var count = Resolution * Resolution;
             VertexBuffer = new ComputeBuffer(count, sizeof(float) * 3);

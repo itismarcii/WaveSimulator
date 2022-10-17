@@ -18,10 +18,10 @@ namespace ShaderWave
             shader.SetKernelInfo(kernelIndex, threadGroups[0], threadGroups[1], threadGroups[2]);
         }
 
-        public static void SetupMesh(ref Mesh mesh, in ShaderWave shader)
+        public static void SetupMesh(ref Mesh mesh, in ShaderWave shader, Vector3 maxBound)
         {
             var kernelInfo = shader.KernelInformation;
-            
+
             //UVs setup
             var count = shader.Resolution * shader.Resolution;
             var uvBuffer =  new ComputeBuffer(count, sizeof(float) * 2);
@@ -43,6 +43,8 @@ namespace ShaderWave
             triangleBuffer.GetData(triangles);
             mesh.triangles = triangles;
             triangleBuffer.Release();
+
+            mesh.bounds = new Bounds(Vector3.zero, maxBound);
         }
         
         public static void SetupWaves(WaveGenerator waves, ref ShaderWave shader)
@@ -59,10 +61,11 @@ namespace ShaderWave
             shader.Shader.SetInt(Shader.PropertyToID("waves_length"), vectorArray.Length);
         }        
         
-        public static void UpdateWave(ref Mesh mesh, in ShaderWave shader)
+        public static void UpdateWave(ref Mesh mesh, in ShaderWave shader, Vector2 startIndex)
         {
             var kernelInfo = shader.KernelInformation;
             shader.Shader.SetFloat(shader.TimeId, Time.fixedTime * shader.Speed);
+            shader.Shader.SetVector(shader.StartIndexId, startIndex);
             shader.Shader.SetBuffer(0, shader.VertexBufferId, shader.VertexBuffer);
             shader.Shader.Dispatch(
                 kernelInfo[0], kernelInfo[1], kernelInfo[2], kernelInfo[3]);

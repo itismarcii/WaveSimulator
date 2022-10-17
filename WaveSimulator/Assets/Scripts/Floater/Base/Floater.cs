@@ -6,7 +6,7 @@ namespace Floater
     [Serializable]
     public struct Floater
     {
-        public int Index;
+        public int Index { get; internal set; }
         public Mesh CurrentMesh { get; private set; }
         public int MeshWidth { get; private set; }
         public Transform Transform;

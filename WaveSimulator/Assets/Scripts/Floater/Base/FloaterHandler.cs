@@ -11,8 +11,10 @@ namespace Floater
                 floater.Transform.position,
                 ForceMode.Acceleration);
 
+            // Run twice for faster index updates (Maybe not needed !!)
             var waveHeight = DepthCalculator.CalculateDepth(floater.CurrentMesh, ref floater);
-            
+            waveHeight = DepthCalculator.CalculateDepth(floater.CurrentMesh, ref floater);
+
             if (!(floater.Transform.position.y < waveHeight)) return;
             
             var displacementMultiplier = 

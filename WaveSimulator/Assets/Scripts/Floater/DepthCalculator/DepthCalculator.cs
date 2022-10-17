@@ -13,7 +13,7 @@ namespace Floater
             
             
             var index = floater.Index + width - 1;
-            if (index > 0 && index < vertexCount)
+            if (index >= 0 && index < vertexCount)
             {
                 var distance = Vector3.Distance(mesh.vertices[index], floater.Transform.position);
                 if (minDistance > distance)
@@ -24,7 +24,7 @@ namespace Floater
             }
 
             index++;
-            if (index > 0 && index < vertexCount)
+            if (index >= 0 && index < vertexCount)
             {
                 var distance = Vector3.Distance(mesh.vertices[index], floater.Transform.position);
                 if (minDistance > distance)
@@ -35,7 +35,7 @@ namespace Floater
             }
             
             index++;
-            if (index > 0 && index < vertexCount)
+            if (index >= 0 && index < vertexCount)
             {
                 var distance = Vector3.Distance(mesh.vertices[index], floater.Transform.position);
                 if (minDistance > distance)
@@ -46,7 +46,7 @@ namespace Floater
             }
 
             index = floater.Index - 1;
-            if (index > 0 && index < vertexCount)
+            if (index >= 0 && index < vertexCount)
             {
                 var distance = Vector3.Distance(mesh.vertices[index], floater.Transform.position);
                 if (minDistance > distance)
@@ -57,7 +57,7 @@ namespace Floater
             }
             
             index = floater.Index + 1;
-            if (index > 0 && index < vertexCount)
+            if (index >= 0 && index < vertexCount)
             {
                 var distance = Vector3.Distance(mesh.vertices[index], floater.Transform.position);
                 if (minDistance > distance)
@@ -68,7 +68,7 @@ namespace Floater
             }
 
             index = floater.Index - width - 1;
-            if (index > 0 && index < vertexCount)
+            if (index >= 0 && index < vertexCount)
             {
                 var distance = Vector3.Distance(mesh.vertices[index], floater.Transform.position);
                 if (minDistance > distance)
@@ -79,7 +79,7 @@ namespace Floater
             }
 
             index++;
-            if (index > 0 && index < vertexCount)
+            if (index >= 0 && index < vertexCount)
             {
                 var distance = Vector3.Distance(mesh.vertices[index], floater.Transform.position);
                 if (minDistance > distance)
@@ -90,7 +90,7 @@ namespace Floater
             }
 
             index++;
-            if (index > 0 && index < vertexCount)
+            if (index >= 0 && index < vertexCount)
             {
                 var distance = Vector3.Distance(mesh.vertices[index], floater.Transform.position);
                 if (minDistance > distance)

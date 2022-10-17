@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public static class MeshTable
@@ -9,7 +7,29 @@ public static class MeshTable
     public static void SetupTable(int amount)
     {
         _Table = new int[amount];
+
+        if (amount % 4 == 0)
+        {
+            for (var i = 0; i < amount;)
+            {
+                _Table[i++] = i * i;
+                _Table[i++] = i * i;
+                _Table[i++] = i * i;
+                _Table[i++] = i * i;
+            }
+            return;
+        }
         
+        if (amount % 2 == 0)
+        {
+            for (var i = 0; i < amount;)
+            {
+                _Table[i++] = i * i;
+                _Table[i++] = i * i;
+            }
+            return;
+        }
+
         for (var i = 0; i < amount; i++)
         {
             _Table[i] = i * i;
@@ -22,6 +42,26 @@ public static class MeshTable
         {
             SetupTable(100);
             Debug.LogWarning("Please setup MeshTable before searching for the fraction.");
+        }
+
+        if (_Table.Length % 4 == 0)
+        {
+            for (var i = 0; i < _Table.Length;)
+            {
+                if (_Table[i++] == verticesCount) return i;
+                if (_Table[i++] == verticesCount) return i;                
+                if (_Table[i++] == verticesCount) return i;
+                if (_Table[i++] == verticesCount) return i;
+            }
+        }
+        
+        if (_Table.Length % 2 == 0)
+        {
+            for (var i = 0; i < _Table.Length;)
+            {
+                if (_Table[i++] == verticesCount) return i;
+                if (_Table[i++] == verticesCount) return i;
+            }
         }
         
         for (var i = 0; i < _Table.Length; i++)

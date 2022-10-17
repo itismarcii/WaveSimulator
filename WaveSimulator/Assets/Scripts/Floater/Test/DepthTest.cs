@@ -16,7 +16,7 @@ public class DepthTest : MonoBehaviour
     {
         _Mesh = MeshFilter.mesh;
         Floater.SetMesh(_Mesh);
-        MeshTable.SetupTable(1000);
+        MeshTable.SetupTable(100);
     }
 
     private void FixedUpdate()

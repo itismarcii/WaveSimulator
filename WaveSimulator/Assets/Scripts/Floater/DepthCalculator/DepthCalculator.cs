@@ -8,7 +8,7 @@ namespace Floater
         {
             var width = floater.MeshWidth;
             var vertexCount = mesh.vertexCount;
-            var minDistance = float.MaxValue;
+            var minDistance = Vector3.Distance(mesh.vertices[floater.Index], floater.Transform.position);
             var newIndex = floater.Index;
             
             

@@ -11,12 +11,12 @@ namespace Floater
                 floater.Transform.position,
                 ForceMode.Acceleration);
 
-            const int waveHeight_ = 00; // GET WAVE HEIGHT AT VERTEX X
+            var waveHeight = DepthCalculator.CalculateDepth(floater.CurrentMesh, ref floater);
             
-            if (!(floater.Transform.position.y < waveHeight_)) return;
+            if (!(floater.Transform.position.y < waveHeight)) return;
             
             var displacementMultiplier = 
-                Mathf.Clamp01((waveHeight_ - floater.Transform.position.y) / floater.DepthBeforeSubmerged) 
+                Mathf.Clamp01((waveHeight - floater.Transform.position.y) / floater.DepthBeforeSubmerged) 
                 * floater.DisplacementAmount;
             
             floater.Rigidbody.AddForceAtPosition(new Vector3(0f, 
@@ -24,11 +24,11 @@ namespace Floater
                 0f), floater.Transform.position, ForceMode.VelocityChange);
             
             floater.Rigidbody.AddForce(
-                displacementMultiplier * -floater.Rigidbody.velocity * floater.WaterDrag * Time.fixedDeltaTime,
+                -floater.Rigidbody.velocity * (displacementMultiplier * floater.WaterDrag * Time.fixedDeltaTime),
                 ForceMode.VelocityChange);
             
             floater.Rigidbody.AddForce(
-                displacementMultiplier * -floater.Rigidbody.angularVelocity * floater.WaterAngularDrag * Time.fixedDeltaTime,
+                -floater.Rigidbody.angularVelocity * (displacementMultiplier * floater.WaterAngularDrag * Time.fixedDeltaTime),
                 ForceMode.VelocityChange);
         }
     }

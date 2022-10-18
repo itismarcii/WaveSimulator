@@ -16,13 +16,13 @@ public class DepthTest : MonoBehaviour
     private void Awake()
     {
         _Mesh = MeshFilter.mesh;
-        Floater.SetMesh(_Mesh);
+        Floater.SetMesh(MeshFilter);
         MeshTable.SetupTable(100);
     }
 
     private void FixedUpdate()
     {
-        WaveHeightY = DepthCalculator.CalculateDepth(_Mesh, ref Floater);
+        WaveHeightY = DepthCalculator.CalculateDepth(MeshFilter, ref Floater);
         FloaterIndex = Floater.Index;
     }
 }

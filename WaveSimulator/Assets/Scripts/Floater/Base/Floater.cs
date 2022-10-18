@@ -8,7 +8,7 @@ namespace Floater
     public struct Floater
     {
         public int Index { get; internal set; }
-        public Mesh CurrentMesh { get; private set; }
+        public MeshFilter CurrentMesh { get; private set; }
         public int MeshWidth { get; private set; }
         public Transform Transform;
         public Rigidbody Rigidbody;
@@ -30,10 +30,10 @@ namespace Floater
             MeshWidth = 0;
         }
 
-        public void SetMesh(Mesh mesh)
+        public void SetMesh(MeshFilter meshFilter)
         {
-            CurrentMesh = mesh;
-            MeshWidth = MeshTable.GetFraction(mesh.vertexCount);
+            CurrentMesh = meshFilter;
+            MeshWidth = MeshTable.GetFraction(meshFilter.mesh.vertexCount);
         }
     }
 }

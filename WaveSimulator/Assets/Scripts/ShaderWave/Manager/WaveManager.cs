@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Extensions;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 namespace ShaderWave
 {
@@ -41,7 +43,7 @@ namespace ShaderWave
         }
 
         [SerializeField] internal ShaderTemplate[] Templates;
-        private readonly List<ShaderContainer> _ShaderContainers = new List<ShaderContainer>();
+        private ShaderContainer[] _ShaderContainers;
         
         private void Awake()
         {
@@ -76,15 +78,16 @@ namespace ShaderWave
         private void OnDisable()
         {
             foreach (var shaderContainer in _ShaderContainers)
-            {
                 shaderContainer.Shader.VertexBuffer.Release();
-            }
         }
 
         private void SetupContainer()
         {
-            foreach (var shaderTemplate in Templates)
+            _ShaderContainers = new ShaderContainer[Templates.Length];
+
+            for (var i = 0; i < Templates.Length; i++)
             {
+                var shaderTemplate = Templates[i];
                 var resolution = MeshTable.GetFraction(shaderTemplate.MeshGrid.MeshGroup[0].mesh.vertexCount);
 
                 var container = new ShaderContainer()
@@ -100,26 +103,28 @@ namespace ShaderWave
                         resolution,
                         shaderTemplate.Speed),
                     Waves = new WaveGenerator(
-                            shaderTemplate.WaveAmount, 
-                            shaderTemplate.Wave, 
-                            shaderTemplate._Multiplier),
+                        shaderTemplate.WaveAmount,
+                        shaderTemplate.Wave,
+                        shaderTemplate._Multiplier),
                     IsWaveDirty = false
                 };
-                
+
                 ShaderWaveHandler.SetupShader(ref container.Shader);
                 ShaderWaveHandler.SetupWaves(container.Waves, ref container.Shader);
-                
+
                 foreach (var meshGroup in container.MeshGrid.MeshGroup)
                 {
                     var mesh = meshGroup.mesh;
                     ShaderWaveHandler.SetupMesh(ref mesh, container.Shader, new Vector3(
-                            mesh.bounds.max.x * container.MeshGrid.GridResolution * container.MeshGrid.MeshResolution * shaderTemplate.Scaling,
-                            mesh.bounds.max.y * shaderTemplate.Scaling,
-                            mesh.bounds.max.z * container.MeshGrid.GridResolution * container.MeshGrid.MeshResolution * shaderTemplate.Scaling)
-                        );
+                        mesh.bounds.max.x * container.MeshGrid.GridResolution * container.MeshGrid.MeshResolution *
+                        shaderTemplate.Scaling,
+                        mesh.bounds.max.y * shaderTemplate.Scaling,
+                        mesh.bounds.max.z * container.MeshGrid.GridResolution * container.MeshGrid.MeshResolution *
+                        shaderTemplate.Scaling)
+                    );
                 }
-                
-                _ShaderContainers.Add(container);
+
+                _ShaderContainers[i] = container;
             }
         }
     }

@@ -113,9 +113,9 @@ namespace ShaderWave
                 {
                     var mesh = meshGroup.mesh;
                     ShaderWaveHandler.SetupMesh(ref mesh, container.Shader, new Vector3(
-                            mesh.bounds.max.x * container.MeshGrid.GridResolution * container.MeshGrid.MeshResolution,
-                            mesh.bounds.max.y,
-                            mesh.bounds.max.z * container.MeshGrid.GridResolution * container.MeshGrid.MeshResolution)
+                            mesh.bounds.max.x * container.MeshGrid.GridResolution * container.MeshGrid.MeshResolution * shaderTemplate.Scaling,
+                            mesh.bounds.max.y * shaderTemplate.Scaling,
+                            mesh.bounds.max.z * container.MeshGrid.GridResolution * container.MeshGrid.MeshResolution * shaderTemplate.Scaling)
                         );
                 }
                 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Extensions;
 using UnityEngine;
 
 namespace ShaderWave
@@ -11,7 +12,6 @@ namespace ShaderWave
         {
             public ComputeShader Shader;
             public WaveGrid MeshGrid;
-            public int Resolution;
             public float Scaling;
             public Vector3 Shift;
             public int Speed;
@@ -31,6 +31,7 @@ namespace ShaderWave
         
         private void Awake()
         {
+            MeshTable.SetupTable(1000);
             SetupContainer();
         }
 
@@ -68,17 +69,19 @@ namespace ShaderWave
         {
             foreach (var shaderTemplate in Templates)
             {
+                var resolution = MeshTable.GetFraction(shaderTemplate.MeshGrid.MeshGroup[0].mesh.vertexCount);
+                
                 var container = new ShaderContainer()
                 {
                     MeshGrid = new WaveGrid(
                         shaderTemplate.MeshGrid.MeshGroup, 
-                        2, // CURRENTLY HARDCODED !!! NEEDS TO BE UPDATED MIT MESH-TABLE FROM DEPTH-CALCULATOR !!!
-                        shaderTemplate.Resolution),
+                        MeshTable.GetFraction(shaderTemplate.MeshGrid.MeshGroup.Length),
+                        resolution),
                     Shader = new ShaderWave(
                         shaderTemplate.Shader, 
                         shaderTemplate.Shift, 
                         shaderTemplate.Scaling, 
-                        shaderTemplate.Resolution,
+                        resolution,
                         shaderTemplate.Speed)
                 };
                 

@@ -1,3 +1,4 @@
+using ShaderWave;
 using UnityEngine;
 
 namespace Floater
@@ -12,8 +13,8 @@ namespace Floater
                 ForceMode.Acceleration);
 
             // Run twice for faster index updates (Maybe not needed !!)
-            var waveHeight = DepthCalculator.CalculateDepth(floater.CurrentMesh, ref floater);
-            waveHeight = DepthCalculator.CalculateDepth(floater.CurrentMesh, ref floater);
+            var waveHeight = DepthCalculator.CalculateDepth(ref floater, new WaveGrid());
+            waveHeight = DepthCalculator.CalculateDepth(ref floater, new WaveGrid());
 
             if (!(floater.Transform.position.y < waveHeight)) return;
             

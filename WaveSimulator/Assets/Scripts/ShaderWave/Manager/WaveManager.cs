@@ -46,7 +46,7 @@ namespace ShaderWave
                 {
                     for (var i = 0; i < gridResolution; i++)
                     {
-                        var mesh = meshGrid.MeshGroup[j + i * gridResolution].mesh;
+                        var mesh = meshGrid.MeshGroup[i + j * gridResolution].mesh;
                         ShaderWaveHandler.UpdateWave(
                             ref mesh, 
                             container.Shader,

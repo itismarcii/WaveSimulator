@@ -112,7 +112,6 @@ namespace Floater
                 if (index < 0 || index >= vertexCount) return;
 
                 gridIndex++;
-                Debug.Log(gridIndex);
                 if(gridIndex >= grid.MeshCount) return;
                 
                 var distance = Vector3.Distance(

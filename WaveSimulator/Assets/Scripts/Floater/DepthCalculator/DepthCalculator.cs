@@ -57,7 +57,6 @@ namespace Floater
             var meshMemory = mesh;
             var meshLog = grid.MeshResolution;
             var gridIndex = newGridIndex;
-            var distanceMemory = minDistance;
             
             if (grid.CeilingStartIndex < floater.Index)
             {
@@ -65,7 +64,7 @@ namespace Floater
                 var meshCeilingIndex = floater.GridIndex + grid.GridResolution;
                 meshMemory = meshCeilingIndex < grid.MeshCount ? grid.MeshGroup[meshCeilingIndex].mesh : meshMemory;
                 if (meshCeilingIndex > 0 && meshCeilingIndex < grid.MeshCount) gridIndex = meshCeilingIndex;
-                else index = floater.Index + resolution;
+                else return;
             }
             else index = floater.Index + resolution;
 
@@ -136,6 +135,7 @@ namespace Floater
                 index += 2;
                 if (index >= 0 && index < vertexCount)
                     CalculateStandard(ref minDistance, ref newIndex, index, meshMemory, meshFilter, floater);
+                
                 newGridIndex = gridIndex;
             }
         }
@@ -229,18 +229,17 @@ namespace Floater
             int index;
             var meshLog = grid.MeshResolution;
             var gridIndex = newGridIndex;
-            var distanceMemory = minDistance;
             
             if (grid.MeshResolution >= floater.Index)
             {                
                 index = GetLowerIndex(floater.Index, resolution, vertexCount);
                 var meshGroundIndex = floater.GridIndex - grid.GridResolution;
                 meshMemory = meshGroundIndex >= 0 ? grid.MeshGroup[meshGroundIndex].mesh : meshMemory;
-                if(meshGroundIndex > 0 && meshGroundIndex < grid.MeshCount) gridIndex = meshGroundIndex;
-                else index = floater.Index - resolution;
-                if (index >= grid.MeshCount - resolution) index -= resolution;
+                if(meshGroundIndex >= 0 && meshGroundIndex < grid.MeshCount) gridIndex = meshGroundIndex;
+                else return;
             }
             else index = floater.Index - resolution;
+            
             
             if (floater.Index % meshLog == 0)
             {   // INDEX IS ON BRODER LEFT

@@ -20,7 +20,7 @@ namespace ShaderWave
             MeshResolution = meshResolution;
             CeilingStartIndex = MeshResolution * MeshResolution - MeshResolution;
             MeshCount = GridResolution * GridResolution;
-            GridPositionWorlds = Array.Empty<Vector3>();
+            GridPositionWorlds = new Vector3[MeshCount];
         }
     }
 }

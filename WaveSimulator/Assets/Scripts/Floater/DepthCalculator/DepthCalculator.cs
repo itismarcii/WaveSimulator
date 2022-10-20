@@ -19,9 +19,8 @@ namespace Floater
             var index = floater.Index;
             
             CalculateMiddleRow(ref minDistance, ref newIndex, ref newGridIndex, index, mesh, meshFilter, floater, grid);
-
-            // CalculateUpperRow(ref minDistance, ref newIndex, ref newGridIndex, mesh, meshFilter, floater, grid);
-            // CalculateLowerRow(ref minDistance, ref newIndex, ref newGridIndex, mesh, meshFilter, floater, grid);
+            CalculateUpperRow(ref minDistance, ref newIndex, ref newGridIndex, mesh, meshFilter, floater, grid);
+            CalculateLowerRow(ref minDistance, ref newIndex, ref newGridIndex, mesh, meshFilter, floater, grid);
 
             floater.Index = newIndex;
             floater.GridIndex = newGridIndex;
@@ -86,10 +85,10 @@ namespace Floater
                 if(gridIndex < 0) return;
 
                 var distance = Vector3.Distance(
-                    grid.MeshGroup[gridIndex].mesh.vertices[index] + meshFilter.transform.position,
+                    grid.MeshGroup[gridIndex].mesh.vertices[index] + grid.GridPositionWorlds[gridIndex],
                     floater.Transform.position);
                 
-                if (!(minDistance > distance)) return;                
+                if(distance > minDistance) return;
                 minDistance = distance;
                 newIndex = index;
                 newGridIndex = gridIndex;
@@ -113,10 +112,10 @@ namespace Floater
                 if(gridIndex > grid.GridResolution) return;
                 
                 var distance = Vector3.Distance(
-                    grid.MeshGroup[gridIndex].mesh.vertices[index] + meshFilter.transform.position,
+                    grid.MeshGroup[gridIndex].mesh.vertices[index] + grid.GridPositionWorlds[gridIndex],
                     floater.Transform.position);
                 
-                if (!(minDistance > distance)) return;
+                if(distance > minDistance) return;
                 minDistance = distance;
                 newIndex = index;
                 newGridIndex = gridIndex;
@@ -163,6 +162,13 @@ namespace Floater
                 
                 var gridIndex = floater.GridIndex - 1;
                 if(gridIndex < 0) return;
+                
+                var distance = Vector3.Distance(
+                    grid.MeshGroup[gridIndex].mesh.vertices[index] + grid.GridPositionWorlds[gridIndex],
+                    floater.Transform.position);
+                
+                if(distance > minDistance) return;
+                minDistance = distance;
                 newIndex = index;
                 newGridIndex = gridIndex;
             }
@@ -175,17 +181,12 @@ namespace Floater
 
                 if ((floater.GridIndex % grid.GridResolution) - --grid.GridResolution == 0) return;
                 
-                // Debug.Log("OLD: " + index);
                 index = GetRightIndex(index, resolution);
-                // Debug.Log("NEW: " + index);
                 
                 if (index < 0 || index >= vertexCount) return;
                 var gridIndex = floater.GridIndex + 1;
                 if(gridIndex > grid.GridResolution) return;
                 
-                var position = meshFilter.transform.position;
-
-
                 var distance = Vector3.Distance(
                     grid.MeshGroup[gridIndex].mesh.vertices[index] + grid.GridPositionWorlds[gridIndex],
                     floater.Transform.position);
@@ -250,10 +251,10 @@ namespace Floater
                 if(gridIndex < 0) return;
 
                 var distance = Vector3.Distance(
-                    grid.MeshGroup[gridIndex].mesh.vertices[index] + meshFilter.transform.position,
+                    grid.MeshGroup[gridIndex].mesh.vertices[index] + grid.GridPositionWorlds[gridIndex],
                     floater.Transform.position);
                 
-                if (!(minDistance > distance)) return;
+                if(distance > minDistance) return;
                 minDistance = distance;
                 newIndex = index;
                 newGridIndex = gridIndex;
@@ -277,10 +278,10 @@ namespace Floater
                 if(gridIndex > grid.GridResolution) return;
                 
                 var distance = Vector3.Distance(
-                    grid.MeshGroup[gridIndex].mesh.vertices[index] + meshFilter.transform.position,
+                    grid.MeshGroup[gridIndex].mesh.vertices[index] + grid.GridPositionWorlds[gridIndex],
                     floater.Transform.position);
                 
-                if (!(minDistance > distance)) return;
+                if(distance > minDistance) return;
                 minDistance = distance;
                 newIndex = index;
                 newGridIndex = gridIndex;

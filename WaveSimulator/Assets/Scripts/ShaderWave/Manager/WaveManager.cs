@@ -124,6 +124,17 @@ namespace ShaderWave
                     );
                 }
 
+                var gridResolution = container.MeshGrid.GridResolution;
+
+                for (var j = 0; j < gridResolution; j++)
+                {
+                    for (var k = 0; k < gridResolution; k++)
+                    {
+                        container.MeshGrid.GridPositionWorlds[k + j * gridResolution] = new Vector3(
+                            k * (resolution - 1), 0, j * (resolution - 1));
+                    }
+                }
+                
                 _ShaderContainers[i] = container;
             }
         }

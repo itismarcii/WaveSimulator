@@ -6,10 +6,7 @@ namespace ShaderWave
     [Serializable]
     public struct WaveGrid
     {
-        internal int GridResolution;
-        internal int MeshResolution;
-        internal int CeilingStartIndex;
-        internal int MeshCount;
+        internal int GridResolution, MeshResolution, CeilingStartIndex, MeshCount;
         internal Vector3[] GridPositionWorlds;
         public MeshFilter[] MeshGroup;
 

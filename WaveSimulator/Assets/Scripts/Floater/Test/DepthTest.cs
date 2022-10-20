@@ -27,18 +27,18 @@ public class DepthTest : MonoBehaviour
         var resolution = MeshTable.GetFraction(_Grid.MeshGroup[0].mesh.vertexCount);
         var minDistance = float.MaxValue;
         var position = GridTransform.position;
-        for (var i = 0; i < gridMatrix; i++)
-        {
-            for (var j = 0; j < gridMatrix; j++)
-            {
-                var distance = Vector3.Distance(
-                    new Vector3(position.x + i * resolution, 0, position.z + j * resolution), 
-                    transform.position);
-                if (distance >= minDistance) continue;
-                minDistance = distance;
-                GridIndex = i + j;
-            }
-        }
+        // for (var i = 0; i < gridMatrix; i++)
+        // {
+        //     for (var j = 0; j < gridMatrix; j++)
+        //     {
+        //         var distance = Vector3.Distance(
+        //             new Vector3(position.x + i * resolution, 0, position.z + j * resolution), 
+        //             transform.position);
+        //         if (distance >= minDistance) continue;
+        //         minDistance = distance;
+        //         GridIndex = i + j;
+        //     }
+        // }
         Floater.SetMeshIndex(_Grid, GridIndex);
         MeshTable.SetupTable(100);
     }

@@ -5,7 +5,7 @@ namespace Floater
 {
     public static class FloaterHandler
     {
-        public static void FloaterUpdate(Floater floater, int totalFloaterCount)
+        public static void FloaterUpdate(Floater floater, int totalFloaterCount, WaveGrid waveGrid)
         {
             floater.Rigidbody.AddForceAtPosition(
                 Physics.gravity / totalFloaterCount, 
@@ -13,8 +13,8 @@ namespace Floater
                 ForceMode.Acceleration);
 
             // Run twice for faster index updates (Maybe not needed !!)
-            var waveHeight = DepthCalculator.CalculateDepth(ref floater, new WaveGrid());
-            waveHeight = DepthCalculator.CalculateDepth(ref floater, new WaveGrid());
+            DepthCalculator.CalculateDepth(ref floater, waveGrid);
+            var waveHeight = DepthCalculator.CalculateDepth(ref floater, waveGrid);
 
             if (!(floater.Transform.position.y < waveHeight)) return;
             

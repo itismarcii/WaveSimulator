@@ -9,7 +9,6 @@ namespace Floater
     {
         public static float CalculateDepth(ref Floater floater, WaveGrid grid)
         {
-            var meshFilter = grid.MeshGroup[floater.GridIndex];
             var newIndex = floater.Index;
             var newGridIndex = floater.GridIndex;
             var minDistance = Vector3.Distance(grid.MeshGroup[newGridIndex].mesh.vertices[newIndex] + grid.GridPositionWorlds[newGridIndex],
@@ -32,8 +31,7 @@ namespace Floater
 
         private static void CalculateStandard(ref float minDistance,ref int newIndex, int index, Mesh mesh, Floater floater)
         {
-            var distance = Vector3.Distance(mesh.vertices[index],
-                floater.Transform.position);
+            var distance = Vector3.Distance(mesh.vertices[index], floater.Transform.position);
             if (!(minDistance > distance)) return;
             minDistance = distance;
             newIndex = index;

@@ -59,7 +59,7 @@ namespace ShaderWave
                 
                 var meshGrid = container.MeshGrid;
                 var gridResolution = meshGrid.GridResolution;
-                var meshResolution = meshGrid.MeshResolution;
+                var meshResolution = meshGrid.MeshResolution - 1;
                 
                 for (var j = 0; j < gridResolution; j++)
                 {
@@ -69,7 +69,7 @@ namespace ShaderWave
                         ShaderWaveHandler.UpdateWave(
                             ref mesh, 
                             container.Shader,
-                            new Vector2((meshResolution - 1) * i, (meshResolution - 1) * j));
+                            new Vector2(meshResolution * i, meshResolution * j));
                     }
                 }
             }

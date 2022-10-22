@@ -9,6 +9,7 @@ namespace ShaderWave
         [Serializable]
         public struct Multiplier
         {
+            public float TimeShift;
             [Range(0f, .3f)]public float AmplitudeCeiling;
             [Range(0f, .3f)]public float AmplitudeGround;
             [Range(0f, .3f)]public float WaveLengthCeiling;
@@ -35,7 +36,8 @@ namespace ShaderWave
                     X = Random.Range(
                         templateWave.X - multiplier.XShiftGround, templateWave.X + multiplier.XShiftCeiling),
                     Z = Random.Range(
-                        templateWave.Z - multiplier.ZShiftGround, templateWave.Z + multiplier.ZShiftCeiling)
+                        templateWave.Z - multiplier.ZShiftGround, templateWave.Z + multiplier.ZShiftCeiling),
+                    TimeShift = templateWave.TimeShift + i * multiplier.TimeShift
                 };
             }
         }

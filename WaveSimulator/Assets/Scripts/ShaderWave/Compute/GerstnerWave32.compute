@@ -44,6 +44,7 @@ void wave_generator (uint3 id : SV_DispatchThreadID)
         
         for (int i = 0; i < waves_length; ++i)
         {
+            time += waves[i].w;
             pos += gerstner_wave(waves[i], pos);
         }
         

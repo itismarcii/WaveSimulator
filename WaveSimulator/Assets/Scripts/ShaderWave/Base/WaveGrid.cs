@@ -15,7 +15,7 @@ namespace ShaderWave
             MeshGroup = meshGroup;
             GridResolution = gridResolution;
             MeshResolution = meshResolution;
-            CeilingStartIndex = MeshResolution * MeshResolution - MeshResolution;
+            CeilingStartIndex = (MeshResolution * MeshResolution) - MeshResolution;
             MeshCount = GridResolution * GridResolution;
             GridPositionWorlds = new Vector3[MeshCount];
         }

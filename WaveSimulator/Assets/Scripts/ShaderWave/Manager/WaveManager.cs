@@ -50,7 +50,7 @@ namespace ShaderWave
             MeshTable.SetupTable(1000);
             SetupContainer();
         }
-
+        
         private void FixedUpdate()
         {
             foreach (var container in _ShaderContainers)
@@ -138,5 +138,7 @@ namespace ShaderWave
                 _ShaderContainers[i] = container;
             }
         }
+        
+        internal WaveGrid GetWaveGrid(int index) => _ShaderContainers[index].MeshGrid;
     }
 }

@@ -1,6 +1,7 @@
 using Extensions;
 using ShaderWave;
 using UnityEngine;
+using UnityEngine.AI;
 
 namespace Floater
 {
@@ -9,21 +10,18 @@ namespace Floater
         public static float CalculateDepth(ref Floater floater, WaveGrid grid)
         {
             var meshFilter = grid.MeshGroup[floater.GridIndex];
-            var mesh = meshFilter.mesh;
             var newIndex = floater.Index;
-            var minDistance = Vector3.Distance(mesh.vertices[floater.Index] + meshFilter.transform.position,
+            var newGridIndex = floater.GridIndex;
+            var minDistance = Vector3.Distance(grid.MeshGroup[newGridIndex].mesh.vertices[newIndex] + grid.GridPositionWorlds[newGridIndex],
                 floater.Transform.position);
             
-            var newGridIndex = floater.GridIndex;
-            var index = floater.Index;
-            
-            CalculateMiddleRow(ref minDistance, ref newIndex, ref newGridIndex, index, mesh, meshFilter, floater, grid);
-            CalculateUpperRow(ref minDistance, ref newIndex, ref newGridIndex, mesh, meshFilter, floater, grid);
-            CalculateLowerRow(ref minDistance, ref newIndex, ref newGridIndex, mesh, meshFilter, floater, grid);
+            CalculateMiddleRow(ref minDistance, ref newIndex, ref newGridIndex, newIndex, grid.MeshGroup[newGridIndex].mesh, floater, grid);
+            CalculateUpperRow(ref minDistance, ref newIndex, ref newGridIndex, grid.MeshGroup[newGridIndex].mesh , floater, grid);
+            CalculateLowerRow(ref minDistance, ref newIndex, ref newGridIndex, grid.MeshGroup[newGridIndex].mesh, floater, grid);
             
             floater.Index = newIndex;
             floater.GridIndex = newGridIndex;
-            return mesh.vertices[newIndex].y;
+            return grid.MeshGroup[floater.GridIndex].mesh.vertices[newIndex].y;
         }
 
         private static int GetUpperIndex(int startIndex, int resolution) => startIndex % resolution;
@@ -32,9 +30,9 @@ namespace Floater
         private static int GetLeftIndex(int startIndex, int resolution) => --startIndex + --resolution;
         private static int GetRightIndex(int startIndex, int resolution) => ++startIndex - --resolution;
 
-        private static void CalculateStandard(ref float minDistance,ref int newIndex, int index, Mesh mesh, Component meshFilter, Floater floater)
+        private static void CalculateStandard(ref float minDistance,ref int newIndex, int index, Mesh mesh, Floater floater)
         {
-            var distance = Vector3.Distance(mesh.vertices[index] + meshFilter.transform.position,
+            var distance = Vector3.Distance(mesh.vertices[index],
                 floater.Transform.position);
             if (!(minDistance > distance)) return;
             minDistance = distance;
@@ -45,38 +43,40 @@ namespace Floater
             ref float minDistance,
             ref int newIndex, 
             ref int newGridIndex, 
-            in Mesh mesh, 
-            MeshFilter meshFilter, 
+            Mesh mesh, 
             Floater floater, 
             WaveGrid grid)
         {
             var vertexCount = mesh.vertexCount;
             var resolution = floater.MeshWidth;
 
-            int index;
-            var meshMemory = mesh;
+            var index = floater.Index + resolution;
             var meshLog = grid.MeshResolution;
             var gridIndex = newGridIndex;
+            var distanceMemory = minDistance;
             
-            if (grid.CeilingStartIndex < floater.Index)
+            if (grid.CeilingStartIndex < index)
             {
-                index = GetUpperIndex(floater.Index, resolution);
                 var meshCeilingIndex = floater.GridIndex + grid.GridResolution;
-                meshMemory = meshCeilingIndex < grid.MeshCount ? grid.MeshGroup[meshCeilingIndex].mesh : meshMemory;
-                if (meshCeilingIndex > 0 && meshCeilingIndex < grid.MeshCount) gridIndex = meshCeilingIndex;
-                else return;
+                if (meshCeilingIndex > 0 && meshCeilingIndex < grid.MeshCount)
+                {
+                    index = GetUpperIndex(floater.Index, resolution);
+                    gridIndex = meshCeilingIndex;
+                    mesh = grid.MeshGroup[meshCeilingIndex].mesh;
+                }
             }
-            else index = floater.Index + resolution;
-
+            
             if (floater.Index % meshLog == 0)
             {   // INDEX IS ON BRODER LEFT
                 
                 if (index >= 0 && index < vertexCount) 
-                    CalculateStandard(ref minDistance, ref newIndex, index, meshMemory, meshFilter, floater);
+                    CalculateStandard(
+                        ref minDistance, ref newIndex, index, mesh, floater);
                 
                 index++;
                 if (index >= 0 && index < vertexCount)
-                    CalculateStandard(ref minDistance, ref newIndex, index, meshMemory, meshFilter, floater);
+                    CalculateStandard(
+                        ref minDistance, ref newIndex, index, mesh, floater);
 
                 if (floater.GridIndex % grid.GridResolution == 0) return;
                 
@@ -87,7 +87,7 @@ namespace Floater
                 if(gridIndex < 0) return;
 
                 var distance = Vector3.Distance(
-                    grid.MeshGroup[gridIndex].mesh.vertices[index] + grid.GridPositionWorlds[gridIndex],
+                    grid.MeshGroup[gridIndex].mesh.vertices[index],
                     floater.Transform.position);
                 
                 if(distance > minDistance) return;
@@ -99,11 +99,13 @@ namespace Floater
             {   // INDEX IS ON BRODER RIGHT
                 
                 if (index >= 0 && index < vertexCount)
-                    CalculateStandard(ref minDistance, ref newIndex, index, meshMemory, meshFilter, floater);
+                    CalculateStandard(
+                        ref minDistance, ref newIndex, index, mesh, floater);
 
                 index--;
                 if (index >= 0 && index < vertexCount)
-                    CalculateStandard(ref minDistance, ref newIndex, index, meshMemory, meshFilter, floater);
+                    CalculateStandard(
+                        ref minDistance, ref newIndex, index, mesh, floater);
 
                 if ((floater.GridIndex % grid.GridResolution) - --grid.GridResolution == 0) return;
                 
@@ -114,7 +116,7 @@ namespace Floater
                 if(gridIndex >= grid.MeshCount) return;
                 
                 var distance = Vector3.Distance(
-                    grid.MeshGroup[gridIndex].mesh.vertices[index] + grid.GridPositionWorlds[gridIndex],
+                    grid.MeshGroup[gridIndex].mesh.vertices[index],
                     floater.Transform.position);
                 
                 if(distance > minDistance) return;
@@ -124,19 +126,21 @@ namespace Floater
             }
             else
             {
-                
                 if (index >= 0 && index < vertexCount)
-                    CalculateStandard(ref minDistance, ref newIndex, index, meshMemory, meshFilter, floater);
+                    CalculateStandard(
+                        ref minDistance, ref newIndex, index, mesh, floater);
 
                 index--;
                 if (index >= 0 && index < vertexCount)
-                    CalculateStandard(ref minDistance, ref newIndex, index, meshMemory, meshFilter, floater);
+                    CalculateStandard(
+                        ref minDistance, ref newIndex, index, mesh, floater);
 
                 index += 2;
                 if (index >= 0 && index < vertexCount)
-                    CalculateStandard(ref minDistance, ref newIndex, index, meshMemory, meshFilter, floater);
-                
-                newGridIndex = gridIndex;
+                    CalculateStandard(
+                        ref minDistance, ref newIndex, index, mesh, floater);
+
+                if(minDistance < distanceMemory) newGridIndex = gridIndex;
             }
         }
 
@@ -146,20 +150,20 @@ namespace Floater
             ref int newGridIndex,
             int index,
             Mesh mesh,
-            MeshFilter meshFilter,
             Floater floater,
             WaveGrid grid)
         {
             var vertexCount = mesh.vertexCount;
             var resolution = floater.MeshWidth;
             var meshLog = grid.MeshResolution;
-
+            
             if (floater.Index % meshLog == 0)
             {
                 // INDEX IS ON BRODER LEFT
                 index++;
                 if (index >= 0 && index < vertexCount)
-                    CalculateStandard(ref minDistance, ref newIndex, index, mesh, meshFilter, floater);
+                    CalculateStandard(
+                        ref minDistance, ref newIndex, index, mesh, floater);
                 
                 if (floater.GridIndex % grid.GridResolution == 0) return;
                 
@@ -169,7 +173,7 @@ namespace Floater
                 if(gridIndex < 0) return;
                 
                 var distance = Vector3.Distance(
-                    grid.MeshGroup[gridIndex].mesh.vertices[index] + grid.GridPositionWorlds[gridIndex],
+                    grid.MeshGroup[gridIndex].mesh.vertices[index],
                     floater.Transform.position);
                 
                 if(distance > minDistance) return;
@@ -182,7 +186,8 @@ namespace Floater
                 
                 index--;
                 if (index >= 0 && index < vertexCount)
-                    CalculateStandard(ref minDistance, ref newIndex, index, mesh, meshFilter, floater);
+                    CalculateStandard(
+                        ref minDistance, ref newIndex, index, mesh, floater);
 
                 if ((floater.GridIndex % grid.GridResolution) - --grid.GridResolution == 0) return;
                 
@@ -193,7 +198,7 @@ namespace Floater
                 if(gridIndex >= grid.MeshCount) return;
                 
                 var distance = Vector3.Distance(
-                    grid.MeshGroup[gridIndex].mesh.vertices[index] + grid.GridPositionWorlds[gridIndex],
+                    grid.MeshGroup[gridIndex].mesh.vertices[index],
                     floater.Transform.position);
 
                 if(distance > minDistance) return;
@@ -205,11 +210,13 @@ namespace Floater
             {
                 index--;
                 if (index >= 0 && index < vertexCount)
-                    CalculateStandard(ref minDistance, ref newIndex, index, mesh, meshFilter, floater);
+                    CalculateStandard(
+                        ref minDistance, ref newIndex, index, mesh, floater);
 
                 index += 2;
                 if (index >= 0 && index < vertexCount)
-                    CalculateStandard(ref minDistance, ref newIndex, index, mesh, meshFilter, floater);
+                    CalculateStandard(
+                        ref minDistance, ref newIndex, index, mesh, floater);
             }
         }
 
@@ -217,39 +224,41 @@ namespace Floater
             ref float minDistance,
             ref int newIndex,
             ref int newGridIndex,
-            in Mesh mesh,
-            MeshFilter meshFilter,
+            Mesh mesh,
             Floater floater,
             WaveGrid grid)
         {
             var vertexCount = mesh.vertexCount;
             var resolution = floater.MeshWidth;
 
-            var meshMemory = mesh;
-            int index;
+            var index = floater.Index - resolution;
             var meshLog = grid.MeshResolution;
             var gridIndex = newGridIndex;
+            var distanceMemory = minDistance;
             
-            if (grid.MeshResolution >= floater.Index)
+            if (grid.MeshResolution >= index)
             {                
-                index = GetLowerIndex(floater.Index, resolution, vertexCount);
                 var meshGroundIndex = floater.GridIndex - grid.GridResolution;
-                meshMemory = meshGroundIndex >= 0 ? grid.MeshGroup[meshGroundIndex].mesh : meshMemory;
-                if(meshGroundIndex >= 0 && meshGroundIndex < grid.MeshCount) gridIndex = meshGroundIndex;
-                else return;
+                if(meshGroundIndex >= 0 && meshGroundIndex < grid.MeshCount)
+                {               
+                    index = GetLowerIndex(-floater.Index, resolution, vertexCount);
+                    gridIndex = meshGroundIndex;
+                    mesh = grid.MeshGroup[meshGroundIndex].mesh;
+                }
             }
-            else index = floater.Index - resolution;
-            
-            
+
+
             if (floater.Index % meshLog == 0)
             {   // INDEX IS ON BRODER LEFT
                 
                 if (index >= 0 && index < vertexCount) 
-                    CalculateStandard(ref minDistance, ref newIndex, index, meshMemory, meshFilter, floater);
+                    CalculateStandard(
+                        ref minDistance, ref newIndex, index, mesh, floater);
                 
                 index++;
                 if (index >= 0 && index < vertexCount)
-                    CalculateStandard(ref minDistance, ref newIndex, index, meshMemory, meshFilter, floater);
+                    CalculateStandard(
+                        ref minDistance, ref newIndex, index, mesh, floater);
 
                 if (floater.GridIndex % grid.GridResolution == 0) return;
                 
@@ -260,7 +269,7 @@ namespace Floater
                 if(gridIndex < 0) return;
 
                 var distance = Vector3.Distance(
-                    grid.MeshGroup[gridIndex].mesh.vertices[index] + grid.GridPositionWorlds[gridIndex],
+                    grid.MeshGroup[gridIndex].mesh.vertices[index],
                     floater.Transform.position);
                 
                 if(distance > minDistance) return;
@@ -272,11 +281,13 @@ namespace Floater
             {   // INDEX IS ON BRODER RIGHT
                 
                 if (index >= 0 && index < vertexCount)
-                    CalculateStandard(ref minDistance, ref newIndex, index, meshMemory, meshFilter, floater);
+                    CalculateStandard(
+                        ref minDistance, ref newIndex, index, mesh, floater);
 
                 index--;
                 if (index >= 0 && index < vertexCount)
-                    CalculateStandard(ref minDistance, ref newIndex, index, meshMemory, meshFilter, floater);
+                    CalculateStandard(
+                        ref minDistance, ref newIndex, index, mesh, floater);
 
                 if ((floater.GridIndex % grid.GridResolution) - --grid.GridResolution == 0) return;
                 
@@ -287,7 +298,7 @@ namespace Floater
                 if(gridIndex >= grid.MeshCount) return;
                 
                 var distance = Vector3.Distance(
-                    grid.MeshGroup[gridIndex].mesh.vertices[index] + grid.GridPositionWorlds[gridIndex],
+                    grid.MeshGroup[gridIndex].mesh.vertices[index],
                     floater.Transform.position);
                 
                 if(distance > minDistance) return;
@@ -298,17 +309,20 @@ namespace Floater
             else
             {
                 if (index >= 0 && index < vertexCount)
-                    CalculateStandard(ref minDistance, ref newIndex, index, meshMemory, meshFilter, floater);
+                    CalculateStandard(
+                        ref minDistance, ref newIndex, index, mesh, floater);
 
                 index--;
                 if (index >= 0 && index < vertexCount)
-                    CalculateStandard(ref minDistance, ref newIndex, index, meshMemory, meshFilter, floater);
+                    CalculateStandard(
+                        ref minDistance, ref newIndex, index, mesh, floater);
 
                 index += 2;
                 if (index >= 0 && index < vertexCount)
-                    CalculateStandard(ref minDistance, ref newIndex, index, meshMemory, meshFilter, floater);
+                    CalculateStandard(
+                        ref minDistance, ref newIndex, index, mesh, floater);
                 
-                newGridIndex = gridIndex;
+                if(minDistance < distanceMemory) newGridIndex = gridIndex;
             }
         }
     }

@@ -8,8 +8,7 @@ using Debug = UnityEngine.Debug;
 public class DepthTest : MonoBehaviour
 {
     public Floater.Floater Floater;
-    public Transform GridTransform;
-    public GridHolder GridHolder;
+    public WaveManager Manager;
     private WaveGrid _Grid;
     [Space(20)]
     
@@ -18,15 +17,15 @@ public class DepthTest : MonoBehaviour
     public int GridIndex;
 
     
-    private void Awake()
+    private void Start()
     {
+        Floater.Transform = transform;
+        Floater.Rigidbody = GetComponent<Rigidbody>();
         MeshTable.SetupTable(1000);
-        GridHolder.Setup();
-        _Grid = GridHolder._WaveGrid;
+        _Grid = Manager.GetWaveGrid(0);
         Floater.SetMeshIndex(_Grid, GridIndex);
         MeshTable.SetupTable(100);
     }
-
     
     private void FixedUpdate()
     {

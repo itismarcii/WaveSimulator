@@ -50,14 +50,17 @@ namespace ShaderWave
         public static void SetupWaves(WaveGenerator waves, ref ShaderWave shader)
         {
             var waveArray = new Vector4[waves.Waves.Length];
-
+            var timeShiftArray = new Vector4[waves.Waves.Length];
+            
             for (var i = 0; i < waveArray.Length; i++)
             {
                 var wave = waves.Waves[i];
-                waveArray[i] = new Vector4(wave.X, wave.Z, wave.Amplitude, wave.TimeShift);
+                waveArray[i] = new Vector4(wave.X, wave.Z, wave.Amplitude, wave.Wavelength);
+                timeShiftArray[i] = new Vector4(wave.TimeShift,0,0,0);
             }
             
             shader.Shader.SetVectorArray(Shader.PropertyToID("waves"), waveArray);
+            shader.Shader.SetVectorArray(Shader.PropertyToID("time_shift"),timeShiftArray);
             shader.Shader.SetInt(Shader.PropertyToID("waves_length"), waveArray.Length);
         }        
         

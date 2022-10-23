@@ -20,6 +20,14 @@ namespace ShaderWave
             [Space(5)] public Wave Wave;
             public WaveGenerator.Multiplier _Multiplier;
             public uint WaveAmount;
+            [SerializeField] internal ExtraWaves[] _ExtraWaves;
+        }
+        
+        [Serializable]
+        internal struct ExtraWaves
+        {
+            public Wave Wave;
+            public int Factor;
         }
         
         private struct ShaderContainer
@@ -109,6 +117,12 @@ namespace ShaderWave
                     IsWaveDirty = false
                 };
 
+                for (var j = 0; j < shaderTemplate._ExtraWaves.Length; j++)
+                {
+                    var wave = shaderTemplate._ExtraWaves[j];
+                    container.Waves.AddWaves(wave.Wave, wave.Factor);
+                }
+                
                 ShaderWaveHandler.SetupShader(ref container.Shader);
                 ShaderWaveHandler.SetupWaves(container.Waves, ref container.Shader);
 

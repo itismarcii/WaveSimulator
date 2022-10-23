@@ -415,20 +415,28 @@ MonoBehaviour:
     Wave:
       X: 0.46
       Z: 0.43
-      Amplitude: 0.086
-      Wavelength: 2.74
+      Amplitude: 0.149
+      Wavelength: 3.9
       TimeShift: 0
     _Multiplier:
-      TimeShift: 0.25
-      AmplitudeCeiling: 0.073
-      AmplitudeGround: 0.026
-      WaveLengthCeiling: 0.066
-      WaveLengthGround: 0.036
-      XShiftCeiling: 0.078
-      XShiftGround: 0.21
-      ZShiftCeiling: 0.136
-      ZShiftGround: 0.0495
-    WaveAmount: 50
+      TimeShift: 0.0025
+      AmplitudeCeiling: 0.115
+      AmplitudeGround: 0.094
+      WaveLengthCeiling: 0.459
+      WaveLengthGround: 0.426
+      XShiftCeiling: 0.193
+      XShiftGround: 0.242
+      ZShiftCeiling: 0.184
+      ZShiftGround: 0.218
+    WaveAmount: 30
+    _ExtraWaves:
+    - Wave:
+        X: 0.1
+        Z: 0.9
+        Amplitude: 0.042
+        Wavelength: 22.5
+        TimeShift: 0
+      Factor: 5
 --- !u!1 &324130505
 GameObject:
   m_ObjectHideFlags: 0

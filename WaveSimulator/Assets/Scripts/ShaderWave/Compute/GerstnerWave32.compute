@@ -71,7 +71,7 @@ float noise_coordinate(float3 coordinate)
 
 [numthreads(32,1,32)]
 void wave_generator (uint3 id : SV_DispatchThreadID)
-{    
+{   
     if(id.x < resolution && id.z < resolution)
     {
         float3 pos = id.xyz;
@@ -93,6 +93,7 @@ void wave_generator (uint3 id : SV_DispatchThreadID)
         pos.z += shift.z;
         
         pos.x *= scaling;
+        pos.y *= scaling;
         pos.z *= scaling;
 
         normalize(pos);

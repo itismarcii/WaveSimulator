@@ -391,7 +391,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Templates:
   - Shader: {fileID: 7200000, guid: 226952046be391e4d8d57cf688334ad1, type: 3}
-    NoiseTexture: {fileID: 2800000, guid: 1682f46674c1af048a054a992dfd2dff, type: 3}
     MeshGrid:
       MeshGroup:
       - {fileID: 1780225722}

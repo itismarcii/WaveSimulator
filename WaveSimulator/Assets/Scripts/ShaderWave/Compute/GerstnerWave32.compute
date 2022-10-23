@@ -34,12 +34,48 @@ float3 gerstner_wave (float4 wave, float3 position)
         a * cos(f));
 }
 
+float2 hash(in float2 x)
+{
+    const float2 k = float2( 0.3183099, 0.3678794);
+    x = x * k + k.yx;
+    return -1.0 + 2.0*frac(16.0 * k * frac(x.x * x.y * (x.x + x.y)));
+}
+
+float mix(float x, float y, float a)
+{
+    return x * (1-a) + y * a;
+}
+
+float noise_coordinate(float3 coordinate)
+{
+    const float kF = 2.0f;
+    
+    float2 pos = coordinate.xz;
+
+    float2 i = floor(pos);
+    float2 f = frac(pos);
+
+    f = f * f * (3.0 - 2.0 * f);
+    
+    return mix(
+        mix(
+            sin(kF * dot(pos, hash(i + float2(0.0,0.0)))),
+            sin(kF * dot(pos, hash(i + float2(1.0,0.0)))),
+            f.x),
+        mix(
+            sin(kF * dot(pos, hash(i + float2(0.0,1.0)))),
+            sin(kF * dot(pos, hash(i + float2(1.0,1.0)))),
+            f.x),
+        f.y);
+}
+
 [numthreads(32,1,32)]
 void wave_generator (uint3 id : SV_DispatchThreadID)
 {    
     if(id.x < resolution && id.z < resolution)
     {
         float3 pos = id.xyz;
+        
         pos.x += startIndex.x;
         pos.z += startIndex.y;
         
@@ -47,6 +83,10 @@ void wave_generator (uint3 id : SV_DispatchThreadID)
         {
             time += time_shift[i].x;
             pos += gerstner_wave(waves[i], pos);
+            pos.y += 0.0025 * noise_coordinate(pos);
+            pos.y += 0.00125 * noise_coordinate(pos);
+            pos.y += 0.000625 * noise_coordinate(pos);
+            pos.y += 0.00003125 * noise_coordinate(pos);
         }
         
         pos.x += shift.x;

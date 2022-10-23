@@ -1,5 +1,6 @@
 using System;
 using Extensions;
+using ShaderWave;
 using UnityEngine;
 
 namespace Floater
@@ -8,7 +9,7 @@ namespace Floater
     public struct Floater
     {
         public int Index { get; internal set; }
-        public Mesh CurrentMesh { get; private set; }
+        public int GridIndex { get; internal set; }
         public int MeshWidth { get; private set; }
         public Transform Transform;
         public Rigidbody Rigidbody;
@@ -26,14 +27,14 @@ namespace Floater
             WaterDrag = waterDrag;
             WaterAngularDrag = waterAngularDrag;
             Index = 0;
-            CurrentMesh = null; // GET ACTUAL MESH !!!
             MeshWidth = 0;
+            GridIndex = 0;
         }
 
-        public void SetMesh(Mesh mesh)
+        public void SetMeshIndex(WaveGrid waveGrid, int index, bool updateMeshWith = false)
         {
-            CurrentMesh = mesh;
-            MeshWidth = MeshTable.GetFraction(mesh.vertexCount);
+            GridIndex = index;
+            if(updateMeshWith || MeshWidth == 0) MeshWidth = MeshTable.GetFraction(waveGrid.MeshGroup[index].mesh.vertexCount);
         }
     }
 }

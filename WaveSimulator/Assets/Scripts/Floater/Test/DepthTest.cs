@@ -1,28 +1,36 @@
+using System.Diagnostics;
 using Extensions;
 using Floater;
+using ShaderWave;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 public class DepthTest : MonoBehaviour
 {
     public Floater.Floater Floater;
-    public MeshFilter MeshFilter;
-    private Mesh _Mesh;
-    
+    public WaveManager Manager;
+    private WaveGrid _Grid;
     [Space(20)]
     
     public int FloaterIndex;
     public float WaveHeightY;
+    public int GridIndex;
+
     
-    private void Awake()
+    private void Start()
     {
-        _Mesh = MeshFilter.mesh;
-        Floater.SetMesh(_Mesh);
+        Floater.Transform = transform;
+        Floater.Rigidbody = GetComponent<Rigidbody>();
+        MeshTable.SetupTable(1000);
+        _Grid = Manager.GetWaveGrid(0);
+        Floater.SetMeshIndex(_Grid, GridIndex);
         MeshTable.SetupTable(100);
     }
-
+    
     private void FixedUpdate()
     {
-        WaveHeightY = DepthCalculator.CalculateDepth(_Mesh, ref Floater);
+        WaveHeightY = DepthCalculator.CalculateDepth(ref Floater, _Grid);
         FloaterIndex = Floater.Index;
+        GridIndex = Floater.GridIndex;
     }
 }

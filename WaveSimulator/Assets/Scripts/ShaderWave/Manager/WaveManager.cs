@@ -58,7 +58,7 @@ namespace ShaderWave
             MeshTable.SetupTable(1000);
             SetupContainer();
         }
-
+        
         private void FixedUpdate()
         {
             foreach (var container in _ShaderContainers)
@@ -67,17 +67,17 @@ namespace ShaderWave
                 
                 var meshGrid = container.MeshGrid;
                 var gridResolution = meshGrid.GridResolution;
-                var meshResolution = meshGrid.MeshResolution;
+                var meshResolution = meshGrid.MeshResolution - 1;
                 
                 for (var j = 0; j < gridResolution; j++)
                 {
                     for (var i = 0; i < gridResolution; i++)
                     {
-                        var mesh = meshGrid.MeshGroup[j + i * gridResolution].mesh;
+                        var mesh = meshGrid.MeshGroup[i + j * gridResolution].mesh;
                         ShaderWaveHandler.UpdateWave(
                             ref mesh, 
                             container.Shader,
-                            new Vector2((meshResolution - 1) * i, (meshResolution - 1) * j));
+                            new Vector2(meshResolution * i, meshResolution * j));
                     }
                 }
             }
@@ -138,8 +138,21 @@ namespace ShaderWave
                     );
                 }
 
+                var gridResolution = container.MeshGrid.GridResolution;
+
+                for (var j = 0; j < gridResolution; j++)
+                {
+                    for (var k = 0; k < gridResolution; k++)
+                    {
+                        container.MeshGrid.GridPositionWorlds[k + j * gridResolution] = new Vector3(
+                            k * (resolution - 1), 0, j * (resolution - 1));
+                    }
+                }
+                
                 _ShaderContainers[i] = container;
             }
         }
+        
+        internal WaveGrid GetWaveGrid(int index) => _ShaderContainers[index].MeshGrid;
     }
 }

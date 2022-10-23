@@ -1,10 +1,11 @@
+using ShaderWave;
 using UnityEngine;
 
 namespace Floater
 {
     public static class FloaterHandler
     {
-        public static void FloaterUpdate(Floater floater, int totalFloaterCount)
+        public static void FloaterUpdate(Floater floater, int totalFloaterCount, WaveGrid waveGrid)
         {
             floater.Rigidbody.AddForceAtPosition(
                 Physics.gravity / totalFloaterCount, 
@@ -12,8 +13,8 @@ namespace Floater
                 ForceMode.Acceleration);
 
             // Run twice for faster index updates (Maybe not needed !!)
-            var waveHeight = DepthCalculator.CalculateDepth(floater.CurrentMesh, ref floater);
-            waveHeight = DepthCalculator.CalculateDepth(floater.CurrentMesh, ref floater);
+            DepthCalculator.CalculateDepth(ref floater, waveGrid);
+            var waveHeight = DepthCalculator.CalculateDepth(ref floater, waveGrid);
 
             if (!(floater.Transform.position.y < waveHeight)) return;
             

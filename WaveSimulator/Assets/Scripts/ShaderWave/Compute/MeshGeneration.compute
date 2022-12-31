@@ -1,0 +1,138 @@
+#pragma kernel GerstnerWaveChunkGenerator 0
+#pragma kernel UVSetup 1
+#pragma kernel TriangleSetup 2
+
+#define THREAD_GROUP_SIZE_X 32
+#define THREAD_GROUP_SIZE_Y 1
+#define THREAD_GROUP_SIZE_Z 32
+
+RWStructuredBuffer<float3> verticesOutput;
+RWStructuredBuffer<float2> uvOutput;
+RWStructuredBuffer<int> triangleOutput;
+
+#define PI 3.14159265358979323846
+
+int resolution;
+float scaling;
+float time;
+float2 chunkId;
+float4 wave;
+
+
+float fastInvSqrt(float x)
+{
+    uint i = asuint(x);
+    i = 0x5f3759df - (i >> 1);
+    x = asfloat(i);
+    x = x * (1.5f - x * x * 0.5f * x);
+    return x;
+}
+
+
+float3 gerstner_wave (float4 wave, float3 position)
+{
+    if(wave.z == 0 || wave.w == 0) return float3 (0,0,0);
+    
+    const float steepness = wave.z;
+    const float wavelength = wave.w;
+    const float k = 2 * PI / wavelength;
+    const float c = fastInvSqrt(9.8 / k);
+    const float2 d = normalize(wave.xy);
+    const float f = k * (dot(d, position.xz) - c * time);
+    const float a = steepness / k;
+
+    return float3(
+        a * cos(f),
+        a * sin(f),
+        a * cos(f));
+}
+
+// Generates a chunk of vertices
+[numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, THREAD_GROUP_SIZE_Z)]
+void GerstnerWaveChunkGenerator(uint3 id : SV_DispatchThreadID)
+{  
+    if(id.x > THREAD_GROUP_SIZE_X || id.y > THREAD_GROUP_SIZE_Y || id.z > THREAD_GROUP_SIZE_Z) return;
+
+    for(int x = 0; x < chunkId.x; x++)
+    {
+        for(int z = 0; z < chunkId.y; z++)
+        {
+            float3 pos = id;
+
+            pos.x += (x * 32);
+            pos.z += (z * 32);
+
+            if(pos.x >= resolution || pos.z >= resolution) continue;
+
+            int vertexIndex = pos.x + pos.z * resolution;
+
+            if(vertexIndex > resolution * resolution) continue;
+
+            pos.x *= scaling;
+            pos.z *= scaling;
+
+            // Static 5 so the null point is in the centre
+            pos.x -= 5;
+            pos.z -= 5;
+
+            pos += gerstner_wave(wave, pos);
+
+            verticesOutput[vertexIndex] = pos;
+        }
+    }
+}
+
+[numthreads(32, 1, 32)]
+void UVSetup(uint3 id : SV_DispatchThreadID)
+{  
+    if(id.x > THREAD_GROUP_SIZE_X || id.y > THREAD_GROUP_SIZE_Y || id.z > THREAD_GROUP_SIZE_Z) return;
+
+    for(int x = 0; x < chunkId.x; x++)
+    {
+        for(int z = 0; z < chunkId.y; z++)
+        {
+            float2 uv = id.xz * scaling;
+
+            uv.x += (x * 32);
+            uv.y += (z * 32);
+
+            if(uv.x > resolution || uv.y > resolution) continue;
+
+            uv.x *= scaling;
+            uv.y *= scaling;
+
+            int uvIndex = (uv.x) + (uv.y) * resolution;
+
+            uvOutput[uvIndex] = float2 (uv.x / resolution, uv.y / resolution);
+        }
+    }
+}
+
+[numthreads(32, 1, 32)]
+void TriangleSetup(uint3 id : SV_DispatchThreadID)
+{  
+    if(id.x > THREAD_GROUP_SIZE_X || id.y > THREAD_GROUP_SIZE_Y || id.z > THREAD_GROUP_SIZE_Z) return;
+
+    for(int x = 0; x < chunkId.x; x++)
+    {
+        for(int z = 0; z < chunkId.y; z++)
+        {
+            float3 index = id;
+            index.x += (x * 32);
+            index.z += (z * 32);
+            
+            if(index.x < resolution - 1 && index.z < resolution - 1)
+            {
+                int triangleIndex = (index.x + (resolution - 1) * index.z) * 6;
+
+                triangleOutput[triangleIndex++] = (index.x) + resolution * (index.z);
+                triangleOutput[triangleIndex++] = (index.x) + resolution * (index.z + 1);
+                triangleOutput[triangleIndex++] = (index.x + 1) + resolution * (index.z + 1);
+
+                triangleOutput[triangleIndex++] = (index.x + 1) + resolution * (index.z + 1);
+                triangleOutput[triangleIndex++] = (index.x + 1) + resolution * (index.z);
+                triangleOutput[triangleIndex++] = (index.x) + resolution * (index.z);
+            }
+        }
+    }
+}

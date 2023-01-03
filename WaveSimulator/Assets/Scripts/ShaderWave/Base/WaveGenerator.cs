@@ -27,7 +27,7 @@ namespace ShaderWave
         {
             Waves = new Wave[amount > 1000 ? 1000 : amount];
 
-            var amplitudeMin = templateWave.Amplitude - multiplier.AmplitudeGround;
+            var amplitudeMin = templateWave.Steepness - multiplier.AmplitudeGround;
             amplitudeMin = amplitudeMin < 0 ? 0.0001f : amplitudeMin;
 
             var waveLengthMin = templateWave.Wavelength - multiplier.WaveLengthGround;
@@ -37,13 +37,13 @@ namespace ShaderWave
             {
                 Waves[i] = new Wave()
                 {
-                    Amplitude = Random.Range(amplitudeMin, templateWave.Amplitude + multiplier.AmplitudeCeiling),
+                    Steepness = Random.Range(amplitudeMin, templateWave.Steepness + multiplier.AmplitudeCeiling),
                     Wavelength = Random.Range(waveLengthMin, templateWave.Wavelength + multiplier.WaveLengthCeiling),
                     X = Random.Range(
                         templateWave.X - multiplier.XShiftGround, templateWave.X + multiplier.XShiftCeiling),
                     Z = Random.Range(
-                        templateWave.Z - multiplier.ZShiftGround, templateWave.Z + multiplier.ZShiftCeiling),
-                    TimeShift = templateWave.TimeShift + i * multiplier.TimeShift
+                        templateWave.Z - multiplier.ZShiftGround, templateWave.Z + multiplier.ZShiftCeiling)
+                    
                 };
             }
         }

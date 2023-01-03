@@ -1,72 +1,119 @@
 #pragma kernel GerstnerWaveChunkGenerator 0
-#pragma kernel UVSetup 1
-#pragma kernel TriangleSetup 2
+#pragma kernel TriangleSetup 1
 
 #define THREAD_GROUP_SIZE_X 32
 #define THREAD_GROUP_SIZE_Y 1
 #define THREAD_GROUP_SIZE_Z 32
 
-RWStructuredBuffer<float3> verticesOutput;
-RWStructuredBuffer<float2> uvOutput;
-RWStructuredBuffer<int> triangleOutput;
+RWStructuredBuffer<float3> verticesOutput;  // Structured buffer to hold the vertices of the mesh
+RWStructuredBuffer<float2> uvOutput;        // Structured buffer to hold the UV coordinates of the mesh
+RWStructuredBuffer<int> triangleOutput;     // Structured buffer to hold the triangle indices of the mesh
 
 #define PI 3.14159265358979323846
 
-int resolution;
+struct WaveInformation
+{
+    float2 direction;
+    float amplitude;
+    float steepness;
+    float wavelength;
+};
+
+struct WaveGeneratorInformation
+{
+    WaveInformation wave_information[100];
+    int wave_amount;
+};
+
+WaveGeneratorInformation wave_generation_information[10];
+
+int mesh_resolution, num_waves, grid_resolution;
 float scaling;
 float time;
 float2 chunkId;
-float4 wave;
+float4 wave_params[2000];
+float wave_amplitude_scale;
+float wave_time_shift_factor;
 
-
+// Fast inverse square root function for use in the Gerstner wave function
 float fastInvSqrt(float x)
 {
-    uint i = asuint(x);
-    i = 0x5f3759df - (i >> 1);
-    x = asfloat(i);
-    x = x * (1.5f - x * x * 0.5f * x);
+    uint i = asuint(x);                         // Convert the float value to an unsigned integer
+    i = 0x5f3759df - (i >> 1);                  // Subtract 1 from the integer value and divide by 2
+    x = asfloat(i);                             // Convert the integer back to a float
+    x = x * (1.5f - x * x * 0.5f * x);          // Use the Newton-Raphson method to approximate the inverse square root
     return x;
 }
 
 
-float3 gerstner_wave (float4 wave, float3 position)
+float3 gerstner_wave (float3 position)
 {
-    if(wave.z == 0 || wave.w == 0) return float3 (0,0,0);
+    if(num_waves == 0) return float3 (0,0,0);
     
-    const float steepness = wave.z;
-    const float wavelength = wave.w;
-    const float k = 2 * PI / wavelength;
-    const float c = fastInvSqrt(9.8 / k);
-    const float2 d = normalize(wave.xy);
-    const float f = k * (dot(d, position.xz) - c * time);
-    const float a = steepness / k;
+    float3 total_displacement = float3 (0,0,0);
+    float3 current_position = position;
+    float startTime = time;
+    
+    for (int i = 0; i < num_waves; i++)
+    {
+        // Extract wave parameters for the current wave
+        float4 current_wave_params = wave_params[i];
+        
+        // Calculate the steepness, wavelength, and wave number
+        const float steepness = current_wave_params.z;
+        const float wavelength = current_wave_params.w;
+        const float k = 2 * PI / wavelength;
 
-    return float3(
-        a * cos(f),
-        a * sin(f),
-        a * cos(f));
+
+        // Calculate the wave speed
+        const float c = fastInvSqrt(9.8 / k);
+
+        // Normalize the wave direction
+        const float2 direction = normalize(current_wave_params.xy);
+
+        // Calculate the wave phase
+        const float f = k * (dot(direction, current_position.xz - c * startTime));
+
+        // Calculate the wave amplitude
+        const float amplitude = steepness / k;
+        
+        // Calculate the Gerstner wave displacement in the x, y, and z directions
+        float3 displacement = float3(
+            amplitude * direction.x * cos(f) / (k * num_waves),
+            amplitude * sin(f),
+            amplitude * direction.y * cos(f) / (k * num_waves));
+        
+        // Add the displacement to the total displacement
+        total_displacement += displacement * wave_amplitude_scale;
+        
+        // Update the current position by adding the displacement
+        current_position += displacement;
+
+        startTime += wave_time_shift_factor;
+    }
+    
+    return total_displacement;
 }
 
-// Generates a chunk of vertices
-[numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, THREAD_GROUP_SIZE_Z)]
-void GerstnerWaveChunkGenerator(uint3 id : SV_DispatchThreadID)
-{  
-    if(id.x > THREAD_GROUP_SIZE_X || id.y > THREAD_GROUP_SIZE_Y || id.z > THREAD_GROUP_SIZE_Z) return;
-
+void MeshChunkGeneration(uint3 id, float vertexCount)
+{
     for(int x = 0; x < chunkId.x; x++)
     {
         for(int z = 0; z < chunkId.y; z++)
         {
             float3 pos = id;
-
+            
+            // Offset the position by the chunk ID
             pos.x += (x * 32);
             pos.z += (z * 32);
 
-            if(pos.x >= resolution || pos.z >= resolution) continue;
+            // Skip iterations if the vertex position is outside the mesh resolution
+            if(pos.x >= mesh_resolution || pos.z >= mesh_resolution) continue;
 
-            int vertexIndex = pos.x + pos.z * resolution;
-
-            if(vertexIndex > resolution * resolution) continue;
+            int vertexIndex = pos.x + pos.z * mesh_resolution;
+            
+            // Skip iterations if the vertex index is invalid
+            if(vertexIndex > vertexCount) continue;
 
             pos.x *= scaling;
             pos.z *= scaling;
@@ -74,40 +121,32 @@ void GerstnerWaveChunkGenerator(uint3 id : SV_DispatchThreadID)
             // Static 5 so the null point is in the centre
             pos.x -= 5;
             pos.z -= 5;
+            
+            float3 displacement = gerstner_wave(pos);
+            pos += displacement;
 
-            pos += gerstner_wave(wave, pos);
+            float2 causticTexCoords = float2 (pos.x / (scaling * mesh_resolution), pos.z / (scaling * mesh_resolution)) + displacement.xy * 0.0001f;
 
             verticesOutput[vertexIndex] = pos;
+            uvOutput[vertexIndex] = causticTexCoords;
         }
     }
 }
 
-[numthreads(32, 1, 32)]
-void UVSetup(uint3 id : SV_DispatchThreadID)
+
+[numthreads(THREAD_GROUP_SIZE_X, THREAD_GROUP_SIZE_Y, THREAD_GROUP_SIZE_Z)]
+void GerstnerWaveChunkGenerator(uint3 id : SV_DispatchThreadID)
 {  
+    // Skip iterations if the thread ID is invalid
     if(id.x > THREAD_GROUP_SIZE_X || id.y > THREAD_GROUP_SIZE_Y || id.z > THREAD_GROUP_SIZE_Z) return;
 
-    for(int x = 0; x < chunkId.x; x++)
-    {
-        for(int z = 0; z < chunkId.y; z++)
-        {
-            float2 uv = id.xz * scaling;
+    // Calculate the mesh vertex count
+    const float vertexCount = mesh_resolution * mesh_resolution;
 
-            uv.x += (x * 32);
-            uv.y += (z * 32);
-
-            if(uv.x > resolution || uv.y > resolution) continue;
-
-            uv.x *= scaling;
-            uv.y *= scaling;
-
-            int uvIndex = (uv.x) + (uv.y) * resolution;
-
-            uvOutput[uvIndex] = float2 (uv.x / resolution, uv.y / resolution);
-        }
-    }
+    MeshChunkGeneration(id, vertexCount);
 }
 
+// Sets up the triangle indices for each vertex
 [numthreads(32, 1, 32)]
 void TriangleSetup(uint3 id : SV_DispatchThreadID)
 {  
@@ -121,17 +160,17 @@ void TriangleSetup(uint3 id : SV_DispatchThreadID)
             index.x += (x * 32);
             index.z += (z * 32);
             
-            if(index.x < resolution - 1 && index.z < resolution - 1)
+            if(index.x < mesh_resolution - 1 && index.z < mesh_resolution - 1)
             {
-                int triangleIndex = (index.x + (resolution - 1) * index.z) * 6;
+                int triangleIndex = (index.x + (mesh_resolution - 1) * index.z) * 6;
 
-                triangleOutput[triangleIndex++] = (index.x) + resolution * (index.z);
-                triangleOutput[triangleIndex++] = (index.x) + resolution * (index.z + 1);
-                triangleOutput[triangleIndex++] = (index.x + 1) + resolution * (index.z + 1);
+                triangleOutput[triangleIndex++] = (index.x) + mesh_resolution * (index.z);
+                triangleOutput[triangleIndex++] = (index.x) + mesh_resolution * (index.z + 1);
+                triangleOutput[triangleIndex++] = (index.x + 1) + mesh_resolution * (index.z + 1);
 
-                triangleOutput[triangleIndex++] = (index.x + 1) + resolution * (index.z + 1);
-                triangleOutput[triangleIndex++] = (index.x + 1) + resolution * (index.z);
-                triangleOutput[triangleIndex++] = (index.x) + resolution * (index.z);
+                triangleOutput[triangleIndex++] = (index.x + 1) + mesh_resolution * (index.z + 1);
+                triangleOutput[triangleIndex++] = (index.x + 1) + mesh_resolution * (index.z);
+                triangleOutput[triangleIndex++] = (index.x) + mesh_resolution * (index.z);
             }
         }
     }

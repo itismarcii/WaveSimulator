@@ -25,11 +25,15 @@ public class MeshChunkGenerator : MonoBehaviour
     #region Variables
 
         [SerializeField] private MeshFilter _MeshFilter;
-        [SerializeField, Range(0.01f, 0.1f)] private float _WaveSpeed = 1;
-        [SerializeField] private Wave _Wave;
+        [SerializeField, Range(0.01f, 5f)] private float _WaveSpeed = 1;
+        [SerializeField] private int _WaveAmount = 1;
+        [SerializeField, Range(.0001f, 1f)] private float _WaveAmplitudeScale = 1;
+        [SerializeField, Range(.0001f, 1f)] private float _WaveTimeShiftFactor = 1;
+        [SerializeField] private Wave _Wave0, _Wave1, _Wave2;
+        private Vector4[] _Waves;
         private int _Resolution;
         private static GlobalVars _GlobalVars;
-        private static float _GlobalTime;
+        private static float _GlobalTime = 0;
     
         [SerializeField] private ComputeShader _Shader;
 
@@ -42,26 +46,31 @@ public class MeshChunkGenerator : MonoBehaviour
             VerticesOutputPropertyId = Shader.PropertyToID("verticesOutput"),
             UVOutputPropertyId = Shader.PropertyToID("uvOutput"),
             TriangleOutputPropertyId = Shader.PropertyToID("triangleOutput"),
-            TimePropertyId = Shader.PropertyToID("time");
-    
-    #endregion
+            TimePropertyId = Shader.PropertyToID("time"),
+            ScalingPropertyId = Shader.PropertyToID("scaling"),
+            MeshResolutionPropertyId = Shader.PropertyToID("mesh_resolution"),
+            ChunkIdPropertyId = Shader.PropertyToID("chunkId"),
+            WaveParameterPropertyId = Shader.PropertyToID("wave_params"),
+            WaveAmountPropertyId = Shader.PropertyToID("num_waves"),
+            WaveAmplitudeScalePropertyId = Shader.PropertyToID("wave_amplitude_scale"),
+            WaveTimeShiftFactorPropertyId = Shader.PropertyToID("wave_time_shift_factor");
+        
+        #endregion
 
-    private void Start()
+    private void OnEnable()
     { 
         Setup();
-        SetupMesh();
-        
-        UpdateGerstnerWave();
     }
     
     private void FixedUpdate()
     {
-        UpdateGerstnerWave();
+       UpdateGerstnerWave();
     }
 
     private void OnDisable()
     {
         _VerticesOutputBuffer.Dispose();
+        _UVOutputBuffer.Dispose();
     }
 
     private void Setup()
@@ -75,33 +84,23 @@ public class MeshChunkGenerator : MonoBehaviour
         _GlobalVars = new GlobalVars()
         {
             resolution = _Resolution, 
-            chunkId = new Vector2(chunkRowCol, chunkRowCol),
-            wave = new Vector4(_Wave.X, _Wave.Z, _Wave.Amplitude, _Wave.Wavelength)
+            chunkId = new Vector2(chunkRowCol, chunkRowCol)
         };
-        
-        _VerticesOutputBuffer = new ComputeBuffer(_MeshFilter.mesh.vertexCount, sizeof(float) * 3);
-        
-        _Shader.SetFloat(Shader.PropertyToID("scaling"), 10 / (float)_Resolution);
-        _Shader.SetInt(Shader.PropertyToID("resolution"), _GlobalVars.resolution);
-        _Shader.SetVector(Shader.PropertyToID("wave"), _GlobalVars.wave);
-        _Shader.SetVector(Shader.PropertyToID("chunkId"), _GlobalVars.chunkId);
 
-        _GlobalTime = 0;
-    }
-
-
-    private void SetupMesh()
-    {
         var mesh = _MeshFilter.mesh;
+        _VerticesOutputBuffer = new ComputeBuffer(mesh.vertexCount, sizeof(float) * 3);
+        _UVOutputBuffer = new ComputeBuffer(mesh.vertexCount, sizeof(float) * 2);
 
-        using (_UVOutputBuffer = new ComputeBuffer(mesh.uv.Length, sizeof(float) * 2))
-        {
-            mesh.uv = GetBufferData(1, _UVOutputBuffer, UVOutputPropertyId, mesh.uv);
-        }
+        _Waves = _Wave0.GenerateWaves(_Wave1, _Wave2, _WaveAmount);
+
+        _Shader.SetFloat(ScalingPropertyId, 10 / (float)_Resolution);
+        _Shader.SetInt(MeshResolutionPropertyId, _GlobalVars.resolution);
+        _Shader.SetVector(ChunkIdPropertyId, _GlobalVars.chunkId);
+        _Shader.SetVectorArray(WaveParameterPropertyId, new Vector4[] { _Wave0.ToVector4() });
         
         using (_TriangleOutputBuffer = new ComputeBuffer(mesh.triangles.Length, sizeof(int)))
         {
-            mesh.triangles = GetBufferData(2, _TriangleOutputBuffer, TriangleOutputPropertyId, mesh.triangles);
+            mesh.triangles = GetBufferData(1, _TriangleOutputBuffer, TriangleOutputPropertyId, mesh.triangles);
         }
     }
 
@@ -123,16 +122,28 @@ public class MeshChunkGenerator : MonoBehaviour
     private void UpdateGerstnerWave()
     {
         var mesh = _MeshFilter.mesh;
+        
         _Shader.SetFloat(TimePropertyId, _GlobalTime);
+        _Shader.SetFloat(WaveTimeShiftFactorPropertyId, _WaveTimeShiftFactor);
+        _Shader.SetFloat(WaveAmplitudeScalePropertyId, _WaveAmplitudeScale);
+        _Shader.SetVectorArray(WaveParameterPropertyId, _Waves);
+        _Shader.SetInt(WaveAmountPropertyId, _WaveAmount);        
+        
         _Shader.SetBuffer(0, VerticesOutputPropertyId, _VerticesOutputBuffer);
+        _Shader.SetBuffer(0, UVOutputPropertyId, _UVOutputBuffer);
+        
         _Shader.Dispatch(0, 32, 1, 32);
 
         var verticesData = new Vector3[mesh.vertexCount];
         _VerticesOutputBuffer.GetData(verticesData);
         mesh.vertices = verticesData;
 
+        var uvData = new Vector2[mesh.vertexCount];
+        _UVOutputBuffer.GetData(uvData);
+        mesh.uv = uvData;
+
         _MeshFilter.mesh = mesh;
 
-        _GlobalTime += Time.fixedTime * _WaveSpeed;
+        _GlobalTime += (Time.fixedDeltaTime * _WaveSpeed);
     }
 }

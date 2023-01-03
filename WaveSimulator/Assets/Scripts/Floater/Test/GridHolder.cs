@@ -1,13 +1,9 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using Extensions;
 using ShaderWave;
 using UnityEngine;
 
 public class GridHolder : MonoBehaviour
 {
-
     [HideInInspector] public WaveGrid _WaveGrid;
 
     public void Setup()

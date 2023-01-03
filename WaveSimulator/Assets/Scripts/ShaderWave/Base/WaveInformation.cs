@@ -7,8 +7,8 @@ namespace ShaderWave.Base
     public struct WaveInformation
     {
         public Vector2 Direction;
-        public float Amplitude;
-        public float Steepness;
-        public float WaveLength;
+        [Range(0,1)]public float Steepness;
+        [Range(0,25)]public float WaveLength;
+        [Range(.01f, 3f)]public float TimeFactor;
     }
 }

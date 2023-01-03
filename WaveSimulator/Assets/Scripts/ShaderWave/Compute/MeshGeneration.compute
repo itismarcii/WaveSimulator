@@ -10,22 +10,10 @@ RWStructuredBuffer<float2> uvOutput;        // Structured buffer to hold the UV 
 RWStructuredBuffer<int> triangleOutput;     // Structured buffer to hold the triangle indices of the mesh
 
 #define PI 3.14159265358979323846
+#define GRAVITY 9.80665
 
-struct WaveInformation
-{
-    float2 direction;
-    float amplitude;
-    float steepness;
-    float wavelength;
-};
-
-struct WaveGeneratorInformation
-{
-    WaveInformation wave_information[100];
-    int wave_amount;
-};
-
-WaveGeneratorInformation wave_generation_information[10];
+float4 wave_information[100];
+float2 wave_static_values[10];
 
 int mesh_resolution, num_waves, grid_resolution;
 float scaling;
@@ -46,9 +34,77 @@ float fastInvSqrt(float x)
 }
 
 
+float3 calculate_gerstner_wave(float2 position, int start, int end, int wave_amount, float time_factor)
+{
+    float3 displacement = float3 (0,0,0);
+
+    float waveTime = time;
+    
+    for(int i = start; i < end; i++)
+    {
+        // Extract wave parameters for the current wave
+        float4 current_wave_params = wave_information[i];
+        
+        // Calculate the steepness, wavelength, and wave number
+        const float steepness = current_wave_params.z;
+        const float wavelength = current_wave_params.w;
+        const float k = 2 * PI / wavelength;
+            
+        // Calculate the wave speed
+        const float c = fastInvSqrt(9.8 / k);
+
+        // Normalize the wave direction
+        const float2 direction = normalize(current_wave_params.xy);
+
+        // Calculate the wave phase
+        const float f = k * (dot(direction, position.xy - c * waveTime));
+
+        // Calculate the wave amplitude
+        const float amplitude = steepness / k;
+        
+        // Calculate the Gerstner wave displacement in the x, y, and z directions
+        displacement += float3 (
+            amplitude * direction.x * cos(f) / (k * wave_amount),
+            amplitude * sin(f),
+            amplitude * direction.y * cos(f) / (k * wave_amount));
+
+        waveTime += time_factor;
+    }
+
+    return displacement;
+}
+
+
+float3 gerstner_wave_calculations(float3 position)
+{
+    if(wave_static_values[0].x == 0) return float3 (0,0,0);
+
+    float3 total_displacement = float3(0,0,0);
+
+    int start_index = 0;
+    for(int j = 0; j < 5; j++)
+    {
+        const int current_wave_amount = wave_static_values[j].x;
+
+        if(current_wave_amount <= 0) break;
+        
+        const int end_index = start_index + current_wave_amount;
+        
+        if(end_index > 100) break;
+
+        total_displacement += calculate_gerstner_wave(position.xz, start_index, end_index, current_wave_amount, wave_static_values[j].y);
+
+        start_index = end_index;
+    }
+
+    return total_displacement;
+}
+
+
 float3 gerstner_wave (float3 position)
 {
     if(num_waves == 0) return float3 (0,0,0);
+
     
     float3 total_displacement = float3 (0,0,0);
     float3 current_position = position;
@@ -122,7 +178,7 @@ void MeshChunkGeneration(uint3 id, float vertexCount)
             pos.x -= 5;
             pos.z -= 5;
             
-            float3 displacement = gerstner_wave(pos);
+            float3 displacement = gerstner_wave_calculations(pos);
             pos += displacement;
 
             float2 causticTexCoords = float2 (pos.x / (scaling * mesh_resolution), pos.z / (scaling * mesh_resolution)) + displacement.xy * 0.0001f;
@@ -170,7 +226,7 @@ void TriangleSetup(uint3 id : SV_DispatchThreadID)
 
                 triangleOutput[triangleIndex++] = (index.x + 1) + mesh_resolution * (index.z + 1);
                 triangleOutput[triangleIndex++] = (index.x + 1) + mesh_resolution * (index.z);
-                triangleOutput[triangleIndex++] = (index.x) + mesh_resolution * (index.z);
+                triangleOutput[triangleIndex] = (index.x) + mesh_resolution * (index.z);
             }
         }
     }

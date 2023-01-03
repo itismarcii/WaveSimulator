@@ -193,7 +193,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 30bad31cc40f36e419b8bf7d0f359601, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 30bad31cc40f36e419b8bf7d0f359601, type: 3}
@@ -361,7 +361,7 @@ MeshCollider:
   m_GameObject: {fileID: 691434306}
   m_Material: {fileID: 0}
   m_IsTrigger: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 4
   m_Convex: 0
   m_CookingOptions: 30
@@ -373,7 +373,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 691434306}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8b12461d1181fd242becdb75dc4473e4, type: 3}
   m_Name: 
@@ -381,6 +381,11 @@ MonoBehaviour:
 --- !u!4 &691434315 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: f16c9e763864ae84993656254da88132, type: 3}
+  m_PrefabInstance: {fileID: 2022620348}
+  m_PrefabAsset: {fileID: 0}
+--- !u!33 &691434317 stripped
+MeshFilter:
+  m_CorrespondingSourceObject: {fileID: -5754084199372789682, guid: f16c9e763864ae84993656254da88132, type: 3}
   m_PrefabInstance: {fileID: 2022620348}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &844038999
@@ -766,11 +771,6 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: -462981019419857548, guid: 30bad31cc40f36e419b8bf7d0f359601, type: 3}
---- !u!33 &1204361226 stripped
-MeshFilter:
-  m_CorrespondingSourceObject: {fileID: -5754084199372789682, guid: 30bad31cc40f36e419b8bf7d0f359601, type: 3}
-  m_PrefabInstance: {fileID: 335372960}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1235023924
 GameObject:
   m_ObjectHideFlags: 0
@@ -931,6 +931,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1635220153}
   - component: {fileID: 1635220154}
+  - component: {fileID: 1635220155}
   m_Layer: 0
   m_Name: MeshGenerator
   m_TagString: Untagged
@@ -960,20 +961,20 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1635220152}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 48b217e27bc65c0449c64a161951a76c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _MeshFilter: {fileID: 1204361226}
-  _WaveSpeed: 0.65
+  _MeshFilter: {fileID: 691434317}
+  _WaveSpeed: 1.03
   _WaveAmount: 300
   _WaveAmplitudeScale: 1
   _WaveTimeShiftFactor: 0.446
   _Wave0:
     X: 1
     Z: 0
-    Steepness: 0.024
+    Steepness: 0.111
     Wavelength: 4.48
     MinX: 0.28
     MaxX: 0.31
@@ -981,12 +982,12 @@ MonoBehaviour:
     MaxZ: 0.14
     MaxWavelength: 0.47
     MinWavelength: 0.36
-    MaxSteepness: 0.0109
-    MinSteepness: 0.0374
+    MaxSteepness: 0.005
+    MinSteepness: 0.059
   _Wave1:
     X: 0.76
     Z: 1
-    Steepness: 0.021
+    Steepness: 0.18
     Wavelength: 10.75
     MinX: 0.17
     MaxX: 0.67
@@ -999,8 +1000,8 @@ MonoBehaviour:
   _Wave2:
     X: 0.25
     Z: 0.52
-    Steepness: 0.036
-    Wavelength: 0.24
+    Steepness: 0.04
+    Wavelength: 0.6
     MinX: 0.52
     MaxX: 0.79
     MinZ: 0.97
@@ -1010,6 +1011,53 @@ MonoBehaviour:
     MaxSteepness: 0.0034
     MinSteepness: 0.0076
   _Shader: {fileID: 7200000, guid: d060cf79428d9134d89e63557d8e33f4, type: 3}
+--- !u!114 &1635220155
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1635220152}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41cdd435d651bf744b4e2d84034be3fc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _Shader: {fileID: 7200000, guid: d060cf79428d9134d89e63557d8e33f4, type: 3}
+  _MeshFilter: {fileID: 691434317}
+  _WaveGenerationInformation:
+  - WaveAmount: 3
+    _BaseWave:
+      Direction: {x: 1, y: 1}
+      Steepness: 0.606
+      WaveLength: 5.1
+      TimeFactor: 0.0524
+    MinX: 0
+    MaxX: 0
+    MinZ: 0
+    MaxZ: 0
+    MinAmplitude: 0
+    MaxAmplitude: 0
+    MinSteepness: 0
+    MaxSteepness: 0
+    MinWaveLength: 0
+    MaxWaveLength: 0
+  - WaveAmount: 10
+    _BaseWave:
+      Direction: {x: 1, y: 1}
+      Steepness: 0.047
+      WaveLength: 1
+      TimeFactor: 0.0834
+    MinX: 0
+    MaxX: 0
+    MinZ: 0
+    MaxZ: 0
+    MinAmplitude: 0
+    MaxAmplitude: 0
+    MinSteepness: 0
+    MaxSteepness: 0
+    MinWaveLength: 0
+    MaxWaveLength: 0
 --- !u!1001 &1815889780
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1411,7 +1459,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: f16c9e763864ae84993656254da88132, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: f16c9e763864ae84993656254da88132, type: 3}
       propertyPath: m_StaticEditorFlags

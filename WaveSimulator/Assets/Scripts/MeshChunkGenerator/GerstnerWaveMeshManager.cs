@@ -19,7 +19,7 @@ public class GerstnerWaveMeshManager : MonoBehaviour
         _VerticesOutputBuffer,
         _UVOutputBuffer,
         _TrianglesOutputBuffer;
-    
+
     private static readonly int
         VerticesOutputPropertyId = Shader.PropertyToID("verticesOutput"),
         UVOutputPropertyId = Shader.PropertyToID("uvOutput"),
@@ -29,7 +29,8 @@ public class GerstnerWaveMeshManager : MonoBehaviour
         MeshResolutionPropertyId = Shader.PropertyToID("mesh_resolution"),
         ChunkIdPropertyId = Shader.PropertyToID("chunkId"),
         WaveInformationPropertyId = Shader.PropertyToID("wave_information"),
-        WaveStaticValuesPropertyId = Shader.PropertyToID("wave_static_values");
+        WaveStaticValuesPropertyId = Shader.PropertyToID("wave_static_values"),
+        WaveStaticValuesNumPropertyId = Shader.PropertyToID("wave_static_values_num");
 
     private void OnEnable()
     {
@@ -46,6 +47,7 @@ public class GerstnerWaveMeshManager : MonoBehaviour
     private void FixedUpdate()
     {
         UpdateGerstnerWave();
+        // Debug.Log(_MeshFilter.mesh.vertices[55]);
     }
 
     private void Setup()
@@ -65,10 +67,10 @@ public class GerstnerWaveMeshManager : MonoBehaviour
 
         // Generate the wave generation information input
         var shaderInputLength = _WaveGenerationInformation.Length;
-        if (_WaveGenerationInformation.Length > 5)
+        if (_WaveGenerationInformation.Length > 10)
         {
             Debug.LogWarning($"The compute shader doesnt allow more than 10 different WaveGenerationInformation inputs. Instead of the {shaderInputLength} amount of WaveGenerationInformations, we locked the amount to 10.");
-            shaderInputLength = 5;
+            shaderInputLength = 10;
         }
 
         // Generate random Waves and set them up in the compute shader 
@@ -83,8 +85,9 @@ public class GerstnerWaveMeshManager : MonoBehaviour
             waveStaticValuesArray[index] = new Vector4(waveGenerationInformation.WaveAmount,
                 waveGenerationInformation.TimeFactorBase);
         }
-        
+
         _Shader.SetVectorArray(WaveInformationPropertyId, waveInformationList.ToArray());
+        _Shader.SetInt(WaveStaticValuesNumPropertyId, waveStaticValuesArray.Length);
         _Shader.SetVectorArray(WaveStaticValuesPropertyId, waveStaticValuesArray);
 
         // Calculate the mesh triangles via the compute shader

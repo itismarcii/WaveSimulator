@@ -12,8 +12,9 @@ RWStructuredBuffer<int> triangleOutput;     // Structured buffer to hold the tri
 #define PI 3.14159265358979323846
 #define GRAVITY 9.80665
 
-float4 wave_information[100];
+float4 wave_information[2500];
 float2 wave_static_values[10];
+int wave_static_values_num;
 
 int mesh_resolution, num_waves, grid_resolution;
 float scaling;
@@ -65,10 +66,10 @@ float3 calculate_gerstner_wave(float2 position, int start, int end, int wave_amo
         // Calculate the Gerstner wave displacement in the x, y, and z directions
         displacement += float3 (
             amplitude * direction.x * cos(f) / (k * wave_amount),
-            amplitude * sin(f),
+            amplitude * sin(f) / wave_amount,
             amplitude * direction.y * cos(f) / (k * wave_amount));
 
-        waveTime += time_factor;
+        //waveTime += time_factor;
     }
 
     return displacement;
@@ -82,15 +83,12 @@ float3 gerstner_wave_calculations(float3 position)
     float3 total_displacement = float3(0,0,0);
 
     int start_index = 0;
-    for(int j = 0; j < 5; j++)
+    for(int j = 0; j < wave_static_values_num; j++)
     {
         const int current_wave_amount = wave_static_values[j].x;
-
-        if(current_wave_amount <= 0) break;
-        
         const int end_index = start_index + current_wave_amount;
-        
-        if(end_index > 100) break;
+
+        if(end_index > 2500) break;
 
         total_displacement += calculate_gerstner_wave(position.xz, start_index, end_index, current_wave_amount, wave_static_values[j].y);
 

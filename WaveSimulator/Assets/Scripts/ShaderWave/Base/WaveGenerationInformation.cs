@@ -8,6 +8,8 @@ namespace ShaderWave.Base
     [Serializable]
     public struct WaveGenerationInformation
     {
+        private const int MAX_WAVE_AMOUNT = 250;
+        
         private WaveInformation[] _GeneratedWaves;
 
         public int WaveAmount;
@@ -48,9 +50,9 @@ namespace ShaderWave.Base
         {
             switch (WaveAmount)
             {
-                case > 100:
-                    Debug.LogWarning($"Max allowed amount of generated waves is 100. 100 Waves are now generated instead of the {WaveAmount}.");
-                    WaveAmount = 100;
+                case > MAX_WAVE_AMOUNT:
+                    Debug.LogWarning($"Max allowed amount of generated waves is {MAX_WAVE_AMOUNT}. {MAX_WAVE_AMOUNT} Waves are now generated instead of the {WaveAmount}.");
+                    WaveAmount = MAX_WAVE_AMOUNT;
                     break;
                 case 0:
                     WaveAmount = 1;

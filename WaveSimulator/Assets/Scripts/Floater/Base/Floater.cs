@@ -34,7 +34,7 @@ namespace Floater
         public void SetMeshIndex(WaveGrid waveGrid, int index, bool updateMeshWith = false)
         {
             GridIndex = index;
-            if(updateMeshWith || MeshWidth == 0) MeshWidth = MeshTable.GetFraction(waveGrid.MeshGroup[index].mesh.vertexCount);
+            if(updateMeshWith || MeshWidth == 0) MeshWidth = MeshTable.GetFraction(waveGrid.GetMesh(index).vertexCount);
         }
     }
 }

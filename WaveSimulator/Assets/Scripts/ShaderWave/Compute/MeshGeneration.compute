@@ -20,7 +20,7 @@ int wave_chunk_array_length;
 int mesh_resolution, num_waves, grid_resolution;
 float scaling;
 float time;
-float2 chunkId;
+float2 chunkId, grid_shift;
 float4 wave_params[2000];
 float wave_amplitude_scale;
 float wave_time_shift_factor;
@@ -175,12 +175,15 @@ void MeshChunkGeneration(uint3 id, float vertexCount)
             // Skip iterations if the vertex index is invalid
             if(vertex_index > vertexCount) continue;
 
+            // Grid shift
+            pos.x += grid_shift.x;
+            pos.z += grid_shift.y;
+            
             pos.x *= scaling;
             pos.z *= scaling;
 
             // Static 5 so the null point is in the centre
-            pos.x -= 5;
-            pos.z -= 5;
+            pos.xz -= 5;
             
             float3 displacement = gerstner_wave_calculations(pos);
             pos += displacement;

@@ -9,7 +9,6 @@ public class GridHolder : MonoBehaviour
     public void Setup()
     {
         var meshFilters = GetComponentsInChildren<MeshFilter>();
-        _WaveGrid = new WaveGrid(meshFilters, MeshTable.GetFraction(meshFilters.Length),
-            MeshTable.GetFraction(meshFilters[0].mesh.vertexCount));
+        _WaveGrid = new WaveGrid(meshFilters);
     }
 }

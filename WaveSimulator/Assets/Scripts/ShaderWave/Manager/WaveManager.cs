@@ -73,7 +73,7 @@ namespace ShaderWave
                 {
                     for (var i = 0; i < gridResolution; i++)
                     {
-                        var mesh = meshGrid.MeshGroup[i + j * gridResolution].mesh;
+                        var mesh = meshGrid.GetMesh(i + j * gridResolution);
                         ShaderWaveHandler.UpdateWave(
                             ref mesh, 
                             container.Shader,
@@ -96,14 +96,12 @@ namespace ShaderWave
             for (var i = 0; i < Templates.Length; i++)
             {
                 var shaderTemplate = Templates[i];
-                var resolution = MeshTable.GetFraction(shaderTemplate.MeshGrid.MeshGroup[0].mesh.vertexCount);
+                var resolution = MeshTable.GetFraction(shaderTemplate.MeshGrid.GetMesh(0).vertexCount);
 
                 var container = new ShaderContainer()
                 {
                     MeshGrid = new WaveGrid(
-                        shaderTemplate.MeshGrid.MeshGroup,
-                        MeshTable.GetFraction(shaderTemplate.MeshGrid.MeshGroup.Length),
-                        resolution),
+                        shaderTemplate.MeshGrid.GetMeshGroup()),
                     Shader = new ShaderWave(
                         shaderTemplate.Shader,
                         shaderTemplate.Shift,
@@ -126,7 +124,7 @@ namespace ShaderWave
                 ShaderWaveHandler.SetupShader(ref container.Shader);
                 ShaderWaveHandler.SetupWaves(container.Waves, ref container.Shader);
 
-                foreach (var meshGroup in container.MeshGrid.MeshGroup)
+                foreach (var meshGroup in container.MeshGrid.GetMeshGroup())
                 {
                     var mesh = meshGroup.mesh;
                     ShaderWaveHandler.SetupMesh(ref mesh, container.Shader, new Vector3(

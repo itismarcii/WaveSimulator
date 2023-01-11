@@ -11,16 +11,16 @@ namespace Floater
         {
             var newIndex = floater.Index;
             var newGridIndex = floater.GridIndex;
-            var minDistance = Vector3.Distance(grid.MeshGroup[newGridIndex].mesh.vertices[newIndex] + grid.GridPositionWorlds[newGridIndex],
+            var minDistance = Vector3.Distance(grid.GetMesh(newGridIndex).vertices[newIndex] + grid.GridPositionWorlds[newGridIndex],
                 floater.Transform.position);
             
-            CalculateMiddleRow(ref minDistance, ref newIndex, ref newGridIndex, newIndex, grid.MeshGroup[newGridIndex].mesh, floater, grid);
-            CalculateUpperRow(ref minDistance, ref newIndex, ref newGridIndex, grid.MeshGroup[newGridIndex].mesh , floater, grid);
-            CalculateLowerRow(ref minDistance, ref newIndex, ref newGridIndex, grid.MeshGroup[newGridIndex].mesh, floater, grid);
+            CalculateMiddleRow(ref minDistance, ref newIndex, ref newGridIndex, newIndex, grid.GetMesh(newGridIndex), floater, grid);
+            CalculateUpperRow(ref minDistance, ref newIndex, ref newGridIndex, grid.GetMesh(newGridIndex) , floater, grid);
+            CalculateLowerRow(ref minDistance, ref newIndex, ref newGridIndex, grid.GetMesh(newGridIndex), floater, grid);
             
             floater.Index = newIndex;
             floater.GridIndex = newGridIndex;
-            return grid.MeshGroup[floater.GridIndex].mesh.vertices[newIndex].y;
+            return grid.GetMesh(floater.GridIndex).vertices[newIndex].y;
         }
 
         private static int GetUpperIndex(int startIndex, int resolution) => startIndex % resolution;
@@ -60,7 +60,7 @@ namespace Floater
                 {
                     index = GetUpperIndex(floater.Index, resolution);
                     gridIndex = meshCeilingIndex;
-                    mesh = grid.MeshGroup[meshCeilingIndex].mesh;
+                    mesh = grid.GetMesh(meshCeilingIndex);
                 }
             }
             
@@ -85,7 +85,7 @@ namespace Floater
                 if(gridIndex < 0) return;
 
                 var distance = Vector3.Distance(
-                    grid.MeshGroup[gridIndex].mesh.vertices[index],
+                    grid.GetMesh(gridIndex).vertices[index],
                     floater.Transform.position);
                 
                 if(distance > minDistance) return;
@@ -114,7 +114,7 @@ namespace Floater
                 if(gridIndex >= grid.MeshCount) return;
                 
                 var distance = Vector3.Distance(
-                    grid.MeshGroup[gridIndex].mesh.vertices[index],
+                    grid.GetMesh(gridIndex).vertices[index],
                     floater.Transform.position);
                 
                 if(distance > minDistance) return;
@@ -171,7 +171,7 @@ namespace Floater
                 if(gridIndex < 0) return;
                 
                 var distance = Vector3.Distance(
-                    grid.MeshGroup[gridIndex].mesh.vertices[index],
+                    grid.GetMesh(gridIndex).vertices[index],
                     floater.Transform.position);
                 
                 if(distance > minDistance) return;
@@ -196,7 +196,7 @@ namespace Floater
                 if(gridIndex >= grid.MeshCount) return;
                 
                 var distance = Vector3.Distance(
-                    grid.MeshGroup[gridIndex].mesh.vertices[index],
+                    grid.GetMesh(gridIndex).vertices[index],
                     floater.Transform.position);
 
                 if(distance > minDistance) return;
@@ -241,7 +241,7 @@ namespace Floater
                 {               
                     index = GetLowerIndex(-floater.Index, resolution, vertexCount);
                     gridIndex = meshGroundIndex;
-                    mesh = grid.MeshGroup[meshGroundIndex].mesh;
+                    mesh = grid.GetMesh(meshGroundIndex);
                 }
             }
 
@@ -267,7 +267,7 @@ namespace Floater
                 if(gridIndex < 0) return;
 
                 var distance = Vector3.Distance(
-                    grid.MeshGroup[gridIndex].mesh.vertices[index],
+                    grid.GetMesh(gridIndex).vertices[index],
                     floater.Transform.position);
                 
                 if(distance > minDistance) return;
@@ -296,7 +296,7 @@ namespace Floater
                 if(gridIndex >= grid.MeshCount) return;
                 
                 var distance = Vector3.Distance(
-                    grid.MeshGroup[gridIndex].mesh.vertices[index],
+                    grid.GetMesh(gridIndex).vertices[index],
                     floater.Transform.position);
                 
                 if(distance > minDistance) return;

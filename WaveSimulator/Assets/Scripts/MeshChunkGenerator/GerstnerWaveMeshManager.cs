@@ -1,15 +1,21 @@
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Extensions;
+using ShaderWave;
 using ShaderWave.Base;
+using Unity.VisualScripting;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 public class GerstnerWaveMeshManager : MonoBehaviour
 {
     [SerializeField] private ComputeShader _Shader;
-    [SerializeField] private MeshFilter _MeshFilter;
+    private int _GridResolution;
+    [SerializeField] private WaveGrid _GridMesh;
     [SerializeField] private WaveInformations[] _WaveInformation;
 
     private int _Resolution;
@@ -31,6 +37,7 @@ public class GerstnerWaveMeshManager : MonoBehaviour
         TriangleOutputPropertyId = Shader.PropertyToID("triangleOutput"),
         TimePropertyId = Shader.PropertyToID("time"),
         ScalingPropertyId = Shader.PropertyToID("scaling"),
+        GridShiftPropertyId = Shader.PropertyToID("grid_shift"),
         MeshResolutionPropertyId = Shader.PropertyToID("mesh_resolution"),
         ChunkIdPropertyId = Shader.PropertyToID("chunkId"),
         WaveParamsArrayPropertyId = Shader.PropertyToID("wave_params_array"),
@@ -42,7 +49,7 @@ public class GerstnerWaveMeshManager : MonoBehaviour
     {
         Setup();
     }
-
+    
     private void OnDisable()
     {
         _VerticesOutputBuffer?.Dispose();
@@ -53,26 +60,28 @@ public class GerstnerWaveMeshManager : MonoBehaviour
     private void FixedUpdate()
     {
         if(!_IsReady) return;
-        
-        UpdateGerstnerWave();
-        // Debug.Log(_MeshFilter.mesh.vertices[55]);
+
+        GridUpdate();
     }
 
     private void Setup()
     {
-        if(_WaveInformation.Length <= 0) return;
+        if(_GridMesh.GetMeshGroup().Length <= 0) return;
         
         MeshTable.SetupTable(1000);
 
-        // Calculate basic information of the mesh
-        var mesh = _MeshFilter.mesh;
-        _Resolution = MeshTable.GetFraction(mesh.vertexCount);
-        var chunkRowCol = _Resolution / 2 < 1 ? 1 : _Resolution / 2;
+        _GridMesh = new WaveGrid(_GridMesh.GetMeshGroup());
+        _GridResolution = _GridMesh.GridResolution;
+        _Resolution = _GridMesh.MeshResolution;
 
+        // Calculate mesh chunk resolution
+        var chunkResolution = _Resolution / 2 < 1 ? 1 : _Resolution / 2;
+        if(_WaveInformation.Length <= 0) return;
+        
         // Set compute shader global variables 
         _Shader.SetFloat(ScalingPropertyId, 10 / (float)_Resolution);
         _Shader.SetInt(MeshResolutionPropertyId,_Resolution);
-        _Shader.SetVector(ChunkIdPropertyId, new Vector2(chunkRowCol, chunkRowCol));
+        _Shader.SetVector(ChunkIdPropertyId, new Vector2(chunkResolution, chunkResolution));
         
         // Generate the wave generation information input
         _WaveTimeCount = _WaveInformation.Length;
@@ -105,19 +114,69 @@ public class GerstnerWaveMeshManager : MonoBehaviour
         _Shader.SetInt(WaveChunkArrayLengthPropertyId, _WaveTimeCount);
         _Shader.SetVectorArray(WaveChunkArrayPropertyId, waveChunkArray);
         
+        // Setup ComputeBuffers that will be used during the duration of the session
+        _VerticesOutputBuffer = new ComputeBuffer(_GridMesh.MeshCount, sizeof(float) * 3);
+        _UVOutputBuffer = new ComputeBuffer(_GridMesh.MeshCount, sizeof(float) * 2);
+        _WaveTimeBuffer = new ComputeBuffer(_WaveTimeCount, sizeof(float) * 3);
+        _WaveTimeBuffer.SetData(_WaveTimeArray);
+
+        for (var x = 0; x < _GridResolution; x++)
+        {
+            for (var y = 0; y < _GridResolution; y++)
+            {
+                if(!MeshSetup(_GridMesh.GetMesh(x + y * _GridResolution),
+                       new Vector2(x * (_GridMesh.MeshResolution - 1),y * (_GridMesh.MeshResolution - 1)))
+                   ) return;
+            }
+        }
+    }
+
+    private void GridUpdate()
+    {
+        for (var x = 0; x < _GridResolution; x++)
+        {
+            for (var y = 0; y < _GridResolution; y++)
+            {
+                UpdateGerstnerWave(
+                    _GridMesh.GetMesh(x + y * _GridResolution), 
+                    new Vector2(x * (_GridMesh.MeshResolution - 1),y * (_GridMesh.MeshResolution - 1))
+                    );
+            }
+        }
+        
+        for (var index = 0; index < _WaveTimeCount; index++)
+        {
+            var waveTime = _WaveTimeArray[index];
+            waveTime.x += waveTime.y * Time.fixedDeltaTime;
+            _WaveTimeArray[index] = waveTime;
+        }
+        
+        _WaveTimeBuffer.SetData(_WaveTimeArray);
+    }
+
+    private bool MeshSetup(Mesh mesh, Vector2 shift)
+    {
         // Calculate the mesh triangles via the compute shader
         using (_TrianglesOutputBuffer = new ComputeBuffer(mesh.triangles.Length, sizeof(int)))
             mesh.triangles = GetBufferData(1, _TrianglesOutputBuffer, TriangleOutputPropertyId, mesh.triangles);
-        
-        // Setup ComputeBuffers that will be used during the duration of the session
-        _VerticesOutputBuffer = new ComputeBuffer(mesh.vertexCount, sizeof(float) * 3);
-        _UVOutputBuffer = new ComputeBuffer(mesh.vertexCount, sizeof(float) * 2);
-        _WaveTimeBuffer = new ComputeBuffer(_WaveTimeCount, sizeof(float) * 3);
-        _WaveTimeBuffer.SetData(_WaveTimeArray);
-        
-        UpdateGerstnerWave();
-        
-        _IsReady = true;
+
+        mesh.bounds = new Bounds(
+            Vector3.zero, new Vector3(
+                    mesh.bounds.max.x * _GridMesh.GridResolution * _GridMesh.MeshResolution,
+                    mesh.bounds.max.y,
+                    mesh.bounds.max.z * _GridMesh.GridResolution * _GridMesh.MeshResolution));
+
+        try
+        {       
+            UpdateGerstnerWave(mesh, shift);
+            _IsReady = true;
+        }
+        catch (Exception e)
+        {
+            _IsReady = false;
+        }
+
+        return _IsReady;
     }
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -135,16 +194,15 @@ public class GerstnerWaveMeshManager : MonoBehaviour
         }
     }
 
-    private void UpdateGerstnerWave()
+    private void UpdateGerstnerWave(Mesh mesh, Vector2 shift)
     {
-        var mesh = _MeshFilter.mesh;
-        
         _Shader.SetFloat(TimePropertyId, _Time);
+        _Shader.SetVector(GridShiftPropertyId, shift);
         _Shader.SetBuffer(0, VerticesOutputPropertyId, _VerticesOutputBuffer);
         _Shader.SetBuffer(0, UVOutputPropertyId, _UVOutputBuffer);
         _Shader.SetBuffer(0, WaveTimeChunkPropertyId, _WaveTimeBuffer);
-        _Shader.Dispatch(0, 32,1,32);
-        
+        _Shader.Dispatch(0, 32, 1, 32);
+
         var verticesData = new Vector3[mesh.vertexCount];
         _VerticesOutputBuffer.GetData(verticesData);
         mesh.vertices = verticesData;
@@ -154,17 +212,5 @@ public class GerstnerWaveMeshManager : MonoBehaviour
         mesh.uv = uvData;
 
         mesh.RecalculateNormals();
-        _MeshFilter.mesh = mesh;
-        
-        for (var index = 0; index < _WaveTimeCount; index++)
-        {
-            var waveTime = _WaveTimeArray[index];
-            waveTime.x += waveTime.y * Time.fixedDeltaTime;
-            _WaveTimeArray[index] = waveTime;
-        }
-        
-        // Debug.Log(mesh.vertices[255]);
-        // Debug.Log(_WaveTimeArray[^1].x);
-        _WaveTimeBuffer.SetData(_WaveTimeArray);
     }
 }

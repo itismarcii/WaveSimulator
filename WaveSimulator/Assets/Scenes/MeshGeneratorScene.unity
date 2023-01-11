@@ -1025,51 +1025,63 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _Shader: {fileID: 7200000, guid: d060cf79428d9134d89e63557d8e33f4, type: 3}
   _MeshFilter: {fileID: 691434317}
-  _WaveGenerationInformation:
+  _WaveInformation:
   - WaveAmount: 5
     _BaseWave:
-      Direction: {x: 1, y: 1}
-      Steepness: 0.431
-      WaveLength: 5.7
-      TimeFactor: 1.77
+      Direction: {x: -0.25, y: 0.3}
+      Steepness: 0.136
+      WaveLength: 0.7
+      TimeFactor: 0.41
+      WaveShift: 0.99
+    MinX: 0.28
+    MaxX: 0.24
+    MinZ: 0.25
+    MaxZ: 0.24
+    MinSteepness: 0.06
+    MaxSteepness: 0.09
+    MinWaveLength: 0.03
+    MaxWaveLength: 0.18
+  - WaveAmount: 5
+    _BaseWave:
+      Direction: {x: 0.5, y: -0.21}
+      Steepness: 0.099
+      WaveLength: 0.6
+      TimeFactor: 0.36
+      WaveShift: 0.99
+    MinX: 0.27
+    MaxX: 0.27
+    MinZ: 0.21
+    MaxZ: 0.21
+    MinSteepness: 0.06
+    MaxSteepness: 0.06
+    MinWaveLength: 0.18
+    MaxWaveLength: 0.18
+  - WaveAmount: 20
+    _BaseWave:
+      Direction: {x: 0.4, y: 0.27}
+      Steepness: 0.25
+      WaveLength: 11.2
+      TimeFactor: 2.53
+      WaveShift: 0.99
     MinX: 0
     MaxX: 0
     MinZ: 0
     MaxZ: 0
-    MinAmplitude: 0
-    MaxAmplitude: 0
     MinSteepness: 0
     MaxSteepness: 0
     MinWaveLength: 0
     MaxWaveLength: 0
   - WaveAmount: 3
     _BaseWave:
-      Direction: {x: 0, y: 1}
-      Steepness: 0.208
-      WaveLength: 2.1
-      TimeFactor: 0.49
+      Direction: {x: 0.91, y: -0.18}
+      Steepness: 0.163
+      WaveLength: 12.2
+      TimeFactor: 3.92
+      WaveShift: 3.15
     MinX: 0
     MaxX: 0
     MinZ: 0
     MaxZ: 0
-    MinAmplitude: 0
-    MaxAmplitude: 0
-    MinSteepness: 0
-    MaxSteepness: 0
-    MinWaveLength: 0
-    MaxWaveLength: 0
-  - WaveAmount: 88
-    _BaseWave:
-      Direction: {x: 0, y: 1}
-      Steepness: 0.174
-      WaveLength: 0.5
-      TimeFactor: 1.77
-    MinX: 0
-    MaxX: 0
-    MinZ: 0
-    MaxZ: 0
-    MinAmplitude: 0
-    MaxAmplitude: 0
     MinSteepness: 0
     MaxSteepness: 0
     MinWaveLength: 0

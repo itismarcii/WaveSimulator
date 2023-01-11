@@ -10,15 +10,20 @@ public class GerstnerWaveMeshManager : MonoBehaviour
 {
     [SerializeField] private ComputeShader _Shader;
     [SerializeField] private MeshFilter _MeshFilter;
-    [SerializeField] private WaveGenerationInformation[] _WaveGenerationInformation;
+    [SerializeField] private WaveInformations[] _WaveInformation;
 
     private int _Resolution;
     private static float _Time;
+    private Vector3[] _WaveTimeArray;
+    private int _WaveTimeCount;
+
+    private static bool _IsReady = false;
 
     private ComputeBuffer
         _VerticesOutputBuffer,
         _UVOutputBuffer,
-        _TrianglesOutputBuffer;
+        _TrianglesOutputBuffer,
+        _WaveTimeBuffer;
 
     private static readonly int
         VerticesOutputPropertyId = Shader.PropertyToID("verticesOutput"),
@@ -28,30 +33,35 @@ public class GerstnerWaveMeshManager : MonoBehaviour
         ScalingPropertyId = Shader.PropertyToID("scaling"),
         MeshResolutionPropertyId = Shader.PropertyToID("mesh_resolution"),
         ChunkIdPropertyId = Shader.PropertyToID("chunkId"),
-        WaveInformationPropertyId = Shader.PropertyToID("wave_information"),
-        WaveStaticValuesPropertyId = Shader.PropertyToID("wave_static_values"),
-        WaveStaticValuesNumPropertyId = Shader.PropertyToID("wave_static_values_num");
+        WaveParamsArrayPropertyId = Shader.PropertyToID("wave_params_array"),
+        WaveChunkArrayPropertyId = Shader.PropertyToID("wave_chunk"),
+        WaveChunkArrayLengthPropertyId = Shader.PropertyToID("wave_chunk_array_length"),
+        WaveTimeChunkPropertyId = Shader.PropertyToID("wave_time_chunk");
 
     private void OnEnable()
     {
         Setup();
-        UpdateGerstnerWave();
     }
 
     private void OnDisable()
     {
-        _VerticesOutputBuffer.Dispose();
-        _UVOutputBuffer.Dispose();
+        _VerticesOutputBuffer?.Dispose();
+        _UVOutputBuffer?.Dispose();
+        _WaveTimeBuffer?.Dispose();
     }
 
     private void FixedUpdate()
     {
+        if(!_IsReady) return;
+        
         UpdateGerstnerWave();
         // Debug.Log(_MeshFilter.mesh.vertices[55]);
     }
 
     private void Setup()
     {
+        if(_WaveInformation.Length <= 0) return;
+        
         MeshTable.SetupTable(1000);
 
         // Calculate basic information of the mesh
@@ -63,44 +73,51 @@ public class GerstnerWaveMeshManager : MonoBehaviour
         _Shader.SetFloat(ScalingPropertyId, 10 / (float)_Resolution);
         _Shader.SetInt(MeshResolutionPropertyId,_Resolution);
         _Shader.SetVector(ChunkIdPropertyId, new Vector2(chunkRowCol, chunkRowCol));
-
-
+        
         // Generate the wave generation information input
-        var shaderInputLength = _WaveGenerationInformation.Length;
-        if (_WaveGenerationInformation.Length > 10)
+        _WaveTimeCount = _WaveInformation.Length;
+        if (_WaveInformation.Length > 10)
         {
-            Debug.LogWarning($"The compute shader doesnt allow more than 10 different WaveGenerationInformation inputs. Instead of the {shaderInputLength} amount of WaveGenerationInformations, we locked the amount to 10.");
-            shaderInputLength = 10;
+            Debug.LogWarning($"The compute shader doesnt allow more than 10 different WaveGenerationInformation inputs. Instead of the {_WaveTimeCount} amount of WaveGenerationInformations, we locked the amount to 10.");
+            _WaveTimeCount = 10;
         }
 
         // Generate random Waves and set them up in the compute shader 
-        var waveInformationAmount = shaderInputLength;
-        var waveInformationList = new List<Vector4>();
-        var waveStaticValuesArray = new Vector4[waveInformationAmount];
-        for (var index = 0; index < _WaveGenerationInformation.Length; index++)
+        var waveParamsList = new List<Vector4>();
+        var waveChunkArray = new Vector4[_WaveTimeCount];
+        _WaveTimeArray = new Vector3[_WaveTimeCount];
+        
+        for (var index = 0; index < _WaveTimeCount; index++)
         {
-            var waveGenerationInformation = _WaveGenerationInformation[index];
-            waveGenerationInformation.GenerateRandomWaves();
-            waveInformationList.AddRange(waveGenerationInformation.GetGeneratedWaves());
-            waveStaticValuesArray[index] = new Vector4(waveGenerationInformation.WaveAmount,
-                waveGenerationInformation.TimeFactorBase);
+            var waveInfo = _WaveInformation[index];
+            waveInfo.GenerateRandomWaves();
+            _WaveInformation[index] = waveInfo;
+            
+            waveParamsList.AddRange(waveInfo.GetGeneratedWaves()); 
+            _WaveTimeArray[index] = new Vector4(
+                0,                                                                                                    
+                waveInfo.TimeFactorBase,
+                waveInfo.WaveShiftBase);
+            waveChunkArray[index] = new Vector2(waveInfo.WaveAmount,0);
         }
 
-        _Shader.SetVectorArray(WaveInformationPropertyId, waveInformationList.ToArray());
-        _Shader.SetInt(WaveStaticValuesNumPropertyId, waveStaticValuesArray.Length);
-        _Shader.SetVectorArray(WaveStaticValuesPropertyId, waveStaticValuesArray);
-
+        _Shader.SetVectorArray(WaveParamsArrayPropertyId, waveParamsList.ToArray());
+        _Shader.SetInt(WaveChunkArrayLengthPropertyId, _WaveTimeCount);
+        _Shader.SetVectorArray(WaveChunkArrayPropertyId, waveChunkArray);
+        
         // Calculate the mesh triangles via the compute shader
         using (_TrianglesOutputBuffer = new ComputeBuffer(mesh.triangles.Length, sizeof(int)))
-        {
             mesh.triangles = GetBufferData(1, _TrianglesOutputBuffer, TriangleOutputPropertyId, mesh.triangles);
-        }
         
         // Setup ComputeBuffers that will be used during the duration of the session
         _VerticesOutputBuffer = new ComputeBuffer(mesh.vertexCount, sizeof(float) * 3);
         _UVOutputBuffer = new ComputeBuffer(mesh.vertexCount, sizeof(float) * 2);
+        _WaveTimeBuffer = new ComputeBuffer(_WaveTimeCount, sizeof(float) * 3);
+        _WaveTimeBuffer.SetData(_WaveTimeArray);
         
         UpdateGerstnerWave();
+        
+        _IsReady = true;
     }
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -125,6 +142,7 @@ public class GerstnerWaveMeshManager : MonoBehaviour
         _Shader.SetFloat(TimePropertyId, _Time);
         _Shader.SetBuffer(0, VerticesOutputPropertyId, _VerticesOutputBuffer);
         _Shader.SetBuffer(0, UVOutputPropertyId, _UVOutputBuffer);
+        _Shader.SetBuffer(0, WaveTimeChunkPropertyId, _WaveTimeBuffer);
         _Shader.Dispatch(0, 32,1,32);
         
         var verticesData = new Vector3[mesh.vertexCount];
@@ -135,7 +153,18 @@ public class GerstnerWaveMeshManager : MonoBehaviour
         _UVOutputBuffer.GetData(uvData);
         mesh.uv = uvData;
 
+        mesh.RecalculateNormals();
         _MeshFilter.mesh = mesh;
-
-        _Time += Time.fixedDeltaTime; }
+        
+        for (var index = 0; index < _WaveTimeCount; index++)
+        {
+            var waveTime = _WaveTimeArray[index];
+            waveTime.x += waveTime.y * Time.fixedDeltaTime;
+            _WaveTimeArray[index] = waveTime;
+        }
+        
+        // Debug.Log(mesh.vertices[255]);
+        // Debug.Log(_WaveTimeArray[^1].x);
+        _WaveTimeBuffer.SetData(_WaveTimeArray);
+    }
 }

@@ -6,13 +6,14 @@ using UnityEngine;
 namespace ShaderWave.Base
 {
     [Serializable]
-    public struct WaveGenerationInformation
+    public struct WaveInformations
     {
         private const int MAX_WAVE_AMOUNT = 250;
         
         private WaveInformation[] _GeneratedWaves;
 
         public int WaveAmount;
+        public float WaveShiftBase { get; private set; }
         [Space,SerializeField] private WaveInformation _BaseWave;
         public float TimeFactorBase { get; private set; }
         [SerializeField] private float
@@ -20,8 +21,6 @@ namespace ShaderWave.Base
             MaxX,
             MinZ,
             MaxZ,
-            MinAmplitude,
-            MaxAmplitude,
             MinSteepness,
             MaxSteepness,
             MinWaveLength,
@@ -61,6 +60,7 @@ namespace ShaderWave.Base
             
             _GeneratedWaves = new WaveInformation[WaveAmount];
             TimeFactorBase = _BaseWave.TimeFactor;
+            WaveShiftBase = _BaseWave.WaveShift;
 
             if (WaveAmount % 8 == 0)
             {

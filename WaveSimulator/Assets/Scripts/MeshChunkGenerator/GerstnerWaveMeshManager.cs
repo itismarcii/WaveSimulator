@@ -14,8 +14,10 @@ using Debug = UnityEngine.Debug;
 public class GerstnerWaveMeshManager : MonoBehaviour
 {
     [SerializeField] private ComputeShader _Shader;
+    [SerializeField] private float _Scaling = 1;
     private int _GridResolution;
-    [SerializeField] private WaveGrid _GridMesh;
+    [SerializeField] private GridHolder _GridHolder;
+    private WaveGrid _GridMesh;
     [SerializeField] private WaveInformations[] _WaveInformation;
 
     private int _Resolution;
@@ -66,11 +68,13 @@ public class GerstnerWaveMeshManager : MonoBehaviour
 
     private void Setup()
     {
-        if(_GridMesh.GetMeshGroup().Length <= 0) return;
+        if(_GridHolder == null) return;
         
         MeshTable.SetupTable(1000);
-
-        _GridMesh = new WaveGrid(_GridMesh.GetMeshGroup());
+        _GridMesh = _GridHolder.Setup();
+        
+        if(_GridMesh.GetMeshGroup().Length <= 0) return;
+        
         _GridResolution = _GridMesh.GridResolution;
         _Resolution = _GridMesh.MeshResolution;
 
@@ -79,7 +83,8 @@ public class GerstnerWaveMeshManager : MonoBehaviour
         if(_WaveInformation.Length <= 0) return;
         
         // Set compute shader global variables 
-        _Shader.SetFloat(ScalingPropertyId, 10 / (float)_Resolution);
+        if(_Scaling <= 0) return;
+        _Shader.SetFloat(ScalingPropertyId, (10 / (float)_Resolution) * _Scaling);
         _Shader.SetInt(MeshResolutionPropertyId,_Resolution);
         _Shader.SetVector(ChunkIdPropertyId, new Vector2(chunkResolution, chunkResolution));
         

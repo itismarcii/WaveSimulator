@@ -4,11 +4,11 @@ using UnityEngine;
 
 public class GridHolder : MonoBehaviour
 {
-    [HideInInspector] public WaveGrid _WaveGrid;
+    public WaveGrid WaveGrid { get; private set; }
 
-    public void Setup()
+    public WaveGrid Setup()
     {
         var meshFilters = GetComponentsInChildren<MeshFilter>();
-        _WaveGrid = new WaveGrid(meshFilters);
+        return new WaveGrid(meshFilters);
     }
 }

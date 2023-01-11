@@ -54,7 +54,7 @@ float3 calculate_gerstner_wave(float3 position, int start, int end, int wave_amo
         if(current_wave_params.x == 0 && current_wave_params.y == 0) continue;
         if(steepness <= 0 || wavelength <= 0) continue;
 
-        
+        // 
         const float k = 2 * PI / wavelength;
             
         // Calculate the wave speed

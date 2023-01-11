@@ -77,11 +77,12 @@ public class GerstnerWaveMeshManager : MonoBehaviour
         
         _GridResolution = _GridMesh.GridResolution;
         _Resolution = _GridMesh.MeshResolution;
-
+        
         // Calculate mesh chunk resolution
         var chunkResolution = _Resolution / 2 < 1 ? 1 : _Resolution / 2;
+
         if(_WaveInformation.Length <= 0) return;
-        
+
         // Set compute shader global variables 
         if(_Scaling <= 0) return;
         _Shader.SetFloat(ScalingPropertyId, (10 / (float)_Resolution) * _Scaling);
